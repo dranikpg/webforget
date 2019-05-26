@@ -1,0 +1,23 @@
+[package]
+name = "server_rust"
+version = "0.1.0"
+authors = ["Vladislav <vladislav.oleshko@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rocket = "*"
+rocket_codegen = "*"
+rocket_contrib = "*"
+
+bcrypt = "0.4"
+
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+
+diesel = { version = "1.0.0", features = ["mysql"] }
+dotenv = "0.9.0"
+r2d2-diesel = "1.0"
+r2d2 = "0.8"
+
+
