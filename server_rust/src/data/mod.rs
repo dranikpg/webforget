@@ -7,6 +7,8 @@ use dotenv::dotenv;
 use std::env;
 
 pub mod auth;
+pub mod notes;
+
 pub mod schema;
 pub mod models;
 

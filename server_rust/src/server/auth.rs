@@ -1,6 +1,6 @@
 use crate::data::auth;
 use crate::data::models::User as MUser;
-use crate::server::data::*;
+use crate::server::data::Conn;
 
 use rocket::{Request, Outcome};
 use rocket::request;
@@ -25,6 +25,7 @@ pub struct UserDto{
     nick: String,
     email: String
 }
+// mature struct
 pub struct User{ //TODO only userid struct ?
     id: i32,
     nick: String,
@@ -57,7 +58,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
         }
     }
 }
-//utils
+// utils
 fn start_session(ck: &mut Cookies, userid: i32) {
     ck.add/*_private*/(Cookie::new("user_id", userid.to_string()));
 }
@@ -65,7 +66,7 @@ fn end_session(ck: &mut Cookies, userid: i32){
     ck.remove/*_private*/(Cookie::named("user_id"));
 }
 // route utils
-type UserInfoT = Json<UserDto>;
+pub type UserInfoT = Json<UserDto>;
 pub fn user_info_rw(us: MUser) -> UserInfoT{
     Json(
         UserDto{
@@ -90,9 +91,9 @@ pub fn user_info_c(us: &User) -> UserInfoT{
         }
     )
 }
-//routes
+// routes
 #[post("/auth/create", rank=1)]
-pub fn r_create_f(user: User) -> &'static str{
+pub fn r_create_f(_user: User) -> &'static str{
     "ERR: Logged in"
 }
 #[post("/auth/create", format = "application/json", data = "<user>")]
@@ -110,7 +111,7 @@ pub fn r_create(mut ck: Cookies, conn: Conn, user: Json<UserCDto>) -> Result<Use
     }
 }
 #[post("/auth/login", rank=1)]
-pub fn r_login_f(user: User) -> &'static str{
+pub fn r_login_f(_user: User) -> &'static str{
     "ERR: Logged in"
 }
 #[post("/auth/login", format = "application/json", data = "<user>", rank=2)]

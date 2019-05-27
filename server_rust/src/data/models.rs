@@ -1,6 +1,6 @@
 //USER
 use super::schema::users;
-#[derive(Queryable)]
+#[derive(Debug, Identifiable, Queryable)]
 pub struct User{
     pub id: i32,
     pub nick: String,
@@ -13,4 +13,26 @@ pub struct NewUser<'a> {
     pub nick: &'a str,
     pub email: &'a str,
     pub pw: &'a str,
+}
+//Entry
+use super::schema::notes;
+#[derive(Debug, Identifiable, Queryable)]
+pub struct Note{
+    pub id: i32,
+    pub user_id: i32,
+    pub title: String,
+    pub link: String,
+}
+#[derive(Insertable)]
+#[table_name="notes"]
+pub struct NewNote<'a>{
+    pub user_id: i32,
+    pub title: &'a str,
+    pub link: &'a str
+}
+#[derive(AsChangeset)]
+#[table_name="notes"]
+pub struct UpdateNote<'a>{
+    pub title: Option<&'a str>,
+    pub link: Option<&'a str>
 }

@@ -1,14 +1,20 @@
 ### Schema
 ##### Mysql
 users: VARCHAR nick, VARCHAR pw, VARCHAR email
+
 notes: VARCHAR title, VARCHAR link, VARCHAR desc
+
 tags: VARCHAR title, user_id, 
+
 tag_match: note_id, tag_id
+
 token impl depends on backend
 
 ## Server
 login_info={nick}
+
 entry_dto={}
+
 rule={}
 
 |Name|Link|Return|
@@ -26,11 +32,16 @@ rule={}
 |Delete|POST /ent/dlt/id |OK/FAIL|
 |__Tags__|||
 |All|/tg/all|[{title,count}]|
+|Prefix|/tg/prefix|[title]|
 |Rename|/tg/upd/id|{title}|
-|__Tag rules__ V2|||
+|__DISCOVER__ V2|||
+|By tag|GET /get/t/<tag>|[entry_dto]|
+|By tags|POST /get/t {incl,excl}|[entry_dto]|
+|Random| GET /get/r?<size>|[entry_dto]|
+|__Tag rules__ V3|||
 |All|GET /rls/get|[rule]|  
 |Get|GET /rls/get/id|{rule}|
 |Create|POST /rls/crt|{rule}/FAIL|
 |Update|POST /rls/upd/id {active/struct} | OK/FAIL|
 |Delete|POST /rls/dlt/id|OK/FAIL|
-|__Suggestion__ V3|||
+|__Suggestion__ V4|||
