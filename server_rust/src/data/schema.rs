@@ -3,6 +3,7 @@ table! {
         id -> Integer,
         user_id -> Integer,
         title -> Varchar,
+        descr -> Text,
         link -> Varchar,
     }
 }

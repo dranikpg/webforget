@@ -9,6 +9,15 @@ fn check_res(qr: diesel::QueryResult<usize>) -> bool{
     if qr.unwrap_or(0) > 0 {true} else {false}
 }
 
+/*pub fn get(conn: &RConn, id: i32) -> Option<Note>{
+    notes::table.find(id).get_result::<Note>(conn).ok()
+}*/
+
+pub fn get_safe(conn: &RConn, id: i32, user_id: i32) -> Option<Note>{
+    notes::table.filter(notes::id.eq(id)).filter(notes::user_id.eq(user_id))
+            .get_result::<Note>(conn).ok()
+}
+
 pub fn get_all(conn: &RConn) -> Option<Vec<Note>> {
     notes::table.load(conn).ok()
 }
@@ -17,27 +26,22 @@ pub fn get_user(conn: &RConn, user_id: i32) -> Option<Vec<Note>>{
     notes::table.filter(notes::user_id.eq(user_id)).load(conn).ok()
 }
 
-pub fn create(conn: &RConn, user_id: i32, title: &str, link: &str) -> Option<Note>{
-    let irs = diesel::insert_into(notes::table).values(
-        &NewNote{
-            user_id,
-            title,
-            link
-        }
-    ).execute(conn);
+pub fn create(conn: &RConn, note: NewNote) -> Option<Note>{
+    let user_id = note.user_id;
+    let irs = diesel::insert_into(notes::table)
+        .values(note).execute(conn);
     if irs.is_err(){
         return None;
     }
-    let us = notes::table.filter(notes::user_id.eq(user_id)).order(notes::id.desc()).first(conn);
+    let us = notes::table.filter(notes::user_id.eq(user_id))
+        .order(notes::id.desc()).first(conn);
     return us.ok();
 }
 
-pub fn update_safe<'a, T: Into<Option<&'a str>>>
-    (conn: &RConn, id: i32, user_id: i32, title: T, link: T) -> bool {
-    let r = diesel::update(notes::table).set(&UpdateNote{
-        title: title.into(), 
-        link: link.into()
-    }).execute(conn);
+pub fn update_safe(conn: &RConn, id: i32, user_id: i32, note: UpdateNote) -> bool {
+    let target = notes::table.filter(notes::id.eq(id)).filter(notes::user_id.eq(user_id));
+    let r = diesel::update(target)
+        .set(note).execute(conn);
     check_res(r)
 }
 

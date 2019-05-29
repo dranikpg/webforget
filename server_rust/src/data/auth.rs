@@ -39,5 +39,5 @@ pub fn login(conn: &RConn, email: &str, pw: &str) -> Option<User>{
     }
 }
 fn verified(us: &User, pw: &str) -> bool{
-    return verify(&us.pw, pw).unwrap_or(false);
+    return verify(pw,&us.pw).unwrap();
 }

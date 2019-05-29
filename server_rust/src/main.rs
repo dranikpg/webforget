@@ -36,6 +36,13 @@ fn main() {
                 server::auth::r_logout,
                 server::auth::r_auto,
                 server::auth::r_auto_f,
+
+                server::notes::r_get_all,
+
+                server::notes::r_get,
+                server::notes::r_create,
+                server::notes::r_update,
+                server::notes::r_delete
             ])
         .launch();
 }

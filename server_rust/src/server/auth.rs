@@ -27,9 +27,9 @@ pub struct UserDto{
 }
 // mature struct
 pub struct User{ //TODO only userid struct ?
-    id: i32,
-    nick: String,
-    email: String
+    pub id: i32,
+    pub nick: String,
+    pub email: String
 }
 impl User{
     pub fn from(u: MUser) -> Self{
@@ -60,7 +60,10 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
 }
 // utils
 fn start_session(ck: &mut Cookies, userid: i32) {
-    ck.add/*_private*/(Cookie::new("user_id", userid.to_string()));
+    ck.add(Cookie::build("user_id", userid.to_string())
+            .path("/")
+        //  .secure(true)  
+            .finish());
 }
 fn end_session(ck: &mut Cookies, userid: i32){
     ck.remove/*_private*/(Cookie::named("user_id"));
@@ -93,8 +96,8 @@ pub fn user_info_c(us: &User) -> UserInfoT{
 }
 // routes
 #[post("/auth/create", rank=1)]
-pub fn r_create_f(_user: User) -> &'static str{
-    "ERR: Logged in"
+pub fn r_create_f(_user: User) -> Status{
+    super::DOUBLE_LOGIN()
 }
 #[post("/auth/create", format = "application/json", data = "<user>")]
 pub fn r_create(mut ck: Cookies, conn: Conn, user: Json<UserCDto>) -> Result<UserInfoT, &'static str>{
@@ -111,8 +114,8 @@ pub fn r_create(mut ck: Cookies, conn: Conn, user: Json<UserCDto>) -> Result<Use
     }
 }
 #[post("/auth/login", rank=1)]
-pub fn r_login_f(_user: User) -> &'static str{
-    "ERR: Logged in"
+pub fn r_login_f(_user: User) -> Status{
+    super::DOUBLE_LOGIN()
 }
 #[post("/auth/login", format = "application/json", data = "<user>", rank=2)]
 pub fn r_login(mut ck: Cookies, conn: Conn, user: Json<UserLDto>) -> Result<UserInfoT,&'static str>{
@@ -134,6 +137,6 @@ pub fn r_auto(user: User) -> UserInfoT{
     user_info(user)
 }
 #[get("/auth/auto", rank = 2)]
-pub fn r_auto_f() -> &'static str{
-    super::fail()
+pub fn r_auto_f() -> Status{
+    super::DOUBLE_LOGIN()
 }
