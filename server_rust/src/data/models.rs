@@ -17,7 +17,7 @@ pub struct NewUser<'a> {
 //Entry
 use super::schema::notes;
 #[derive(Debug, Identifiable, Queryable)]
-#[derive(Serialize, Deserialize)]
+//#[derive(Serialize, Deserialize)]
 pub struct Note{
     pub id: i32,
     pub user_id: i32,
@@ -40,4 +40,38 @@ pub struct UpdateNote<'a>{
     pub title: Option<&'a str>,
     pub link: Option<&'a str>,
     pub descr: Option<&'a str>
+}
+//
+use super::schema::tags;
+#[derive(Debug, Identifiable, Queryable)]
+pub struct Tag{
+    pub id: i32,
+    pub user_id: i32,
+    pub name: String
+}
+#[derive(Debug, Identifiable, Queryable)]
+#[table_name="tags"]
+pub struct TagID{
+    pub id: i32,
+}
+#[derive(Insertable)]
+#[table_name="tags"]
+pub struct NewTag<'a>{
+    pub user_id: i32,
+    pub name: &'a str
+}
+//
+use super::schema::tagmap;
+#[derive(Debug, Identifiable, Queryable)]
+#[table_name="tagmap"]
+pub struct Tagmap{
+    pub id: i32, 
+    pub tag_id: i32,
+    pub note_id: i32
+}
+#[derive(Insertable)]
+#[table_name="tagmap"]
+pub struct TagmapInsert{
+    pub tag_id: i32,
+    pub note_id: i32,
 }

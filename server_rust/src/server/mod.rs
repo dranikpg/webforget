@@ -8,4 +8,5 @@ use rocket::http::Status;
 
 pub fn DOUBLE_LOGIN() -> Status {Status::new(403, "double login")}
 pub fn FORBIDDEN() -> Status {Status::new(403,"forbidden")}
+pub fn FAILED() -> Status {Status::new(404,"fail")}
 pub fn SUCCESS() -> Status {Status::new(200,"OK")}

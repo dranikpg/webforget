@@ -13,7 +13,7 @@ fn check_res(qr: diesel::QueryResult<usize>) -> bool{
     notes::table.find(id).get_result::<Note>(conn).ok()
 }*/
 
-pub fn get_safe(conn: &RConn, id: i32, user_id: i32) -> Option<Note>{
+pub fn get(conn: &RConn, id: i32, user_id: i32) -> Option<Note>{
     notes::table.filter(notes::id.eq(id)).filter(notes::user_id.eq(user_id))
             .get_result::<Note>(conn).ok()
 }
