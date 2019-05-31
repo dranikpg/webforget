@@ -5,13 +5,7 @@ use diesel::prelude::*;
 use super::models::{Tag,TagID, NewTag, Tagmap, TagmapInsert};
 use super::schema::{tags,tagmap} ;
 
-fn check_res(qr: diesel::QueryResult<usize>) -> bool{
-    if qr.unwrap_or(0) > 0 {true} else {false}
-}
-
-pub fn get_all(conn: &RConn) -> Option<Vec<Tag>>{
-    tags::table.load(conn).ok()
-}
+use super::check_affected;
 
 //better and faster version?
 /*pub fn create_missing(conn: &RConn, user_id: i32, tags: &Vec<String>){
@@ -71,13 +65,14 @@ pub fn add_missing(conn: &RConn, user_id: i32, note_id: i32, tags: &Vec<String>)
 pub fn get(conn: &RConn, note_id: i32) -> Option<Vec<String>>{
     let tags_o: Option<Vec<Tagmap>> = tagmap::table.filter(tagmap::note_id.eq(note_id))
         .load(conn).ok();
+    println!("{:?}", tags_o);
     if tags_o.is_none(){
         return None;
     }
     let tags = tags_o.unwrap();
     let mut out: Vec<String> = Vec::with_capacity(tags.len());
     for tag in tags{
-        let name = tags::table.find(tag.id).get_result::<Tag>(conn).ok();
+        let name = tags::table.find(tag.tag_id).get_result::<Tag>(conn).ok();
         if name.is_some(){
             out.push(name.unwrap().name);
         }

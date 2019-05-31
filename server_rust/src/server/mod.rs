@@ -1,6 +1,7 @@
 pub mod data;
 pub mod auth;
 pub mod notes;
+pub mod tags;
 
 use rocket::http::Status;
 

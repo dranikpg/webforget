@@ -10,8 +10,8 @@ use crate::data::models::{Note,NewNote, UpdateNote};
 use crate::server::data::Conn;
 
 #[get("/tg/all")]
-pub fn r_get_user(conn: Conn, user: User) -> Option<Vec<String>>{
-    tags::get_user(&conn, user.id)
+pub fn r_get_user(conn: Conn, user: User) -> Option<Json<Vec<String>>>{
+    tags::get_user(&conn, user.id).map(|x|Json(x))
 }
 
 /*Rename?

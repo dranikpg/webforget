@@ -5,9 +5,7 @@ use diesel::prelude::*;
 use super::models::{Note, NewNote, UpdateNote};
 use super::schema::notes;
 
-fn check_res(qr: diesel::QueryResult<usize>) -> bool{
-    if qr.unwrap_or(0) > 0 {true} else {false}
-}
+use super::check_affected;
 
 /*pub fn get(conn: &RConn, id: i32) -> Option<Note>{
     notes::table.find(id).get_result::<Note>(conn).ok()
@@ -42,7 +40,7 @@ pub fn update_safe(conn: &RConn, id: i32, user_id: i32, note: UpdateNote) -> boo
     let target = notes::table.filter(notes::id.eq(id)).filter(notes::user_id.eq(user_id));
     let r = diesel::update(target)
         .set(note).execute(conn);
-    check_res(r)
+    super::check_affected(r)
 }
 
 /*pub fn delete(conn: &RConn, id: i32) -> bool{
@@ -57,5 +55,5 @@ pub fn delete_safe(conn: &RConn, id: i32, user_id: i32) -> bool{
     let r =  diesel::delete(notes::table)
             .filter(notes::id.eq(id))
             .filter(notes::user_id.eq(user_id)).execute(conn);
-    check_res(r)
+    super::check_affected(r)
 }

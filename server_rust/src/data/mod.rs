@@ -1,6 +1,7 @@
 use r2d2;
 use r2d2_diesel::ConnectionManager;
 
+use diesel;
 use diesel::prelude::*;
 use diesel::mysql::MysqlConnection;
 use dotenv::dotenv;
@@ -26,4 +27,8 @@ pub fn init() -> Pool{
     Pool::builder()
         .max_size(2)
         .build(manager).expect("Pool creation error")
+}
+
+pub fn check_affected(qr: diesel::QueryResult<usize>) -> bool{
+    if qr.unwrap_or(0) > 0 {true} else {false}
 }
