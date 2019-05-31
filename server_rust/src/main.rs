@@ -19,10 +19,6 @@ mod data;
 mod server;
 
 use server::data::*;
-#[get("/")]
-pub fn test( conn: Conn) -> &'static str{
-    "lol"
-}
 
 fn main() {
     rocket::ignite()

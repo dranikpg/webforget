@@ -70,10 +70,6 @@ impl NoteNewDto{
 //struct for updating data
 type NoteUpdateDto<'a> = UpdateNote<'a>;
 //routes
-#[get("/ent/all")]
-pub fn r_get_all(conn: Conn) -> Json<Vec<Note>>{
-    Json(notes::get_all(&conn).unwrap())
-}
 #[get("/ent/get/<id>")]
 pub fn r_get(conn: Conn, id: i32, user: User) -> Option<Json<NoteDto>>{
     notes::get(&conn, id, user.id).map(|n| {

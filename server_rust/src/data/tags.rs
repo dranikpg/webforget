@@ -5,6 +5,10 @@ use diesel::prelude::*;
 use super::models::{Tag,TagID, NewTag, Tagmap, TagmapInsert};
 use super::schema::{tags,tagmap} ;
 
+fn check_res(qr: diesel::QueryResult<usize>) -> bool{
+    if qr.unwrap_or(0) > 0 {true} else {false}
+}
+
 pub fn get_all(conn: &RConn) -> Option<Vec<Tag>>{
     tags::table.load(conn).ok()
 }
@@ -58,6 +62,12 @@ pub fn add_missing(conn: &RConn, user_id: i32, note_id: i32, tags: &Vec<String>)
     }
 }
 
+/*pub fn rename(conn: &RConn, user_id: i32, name: &str, nname: &str) -> bool{
+    let q = diesel::update(tags::table.filter(tags::user_id.eq(user_id)).filter(tags::name.eq(name)))
+        .set(tags::name.eq(nname)).execute(conn);
+    check_res(q)
+}*/
+
 pub fn get(conn: &RConn, note_id: i32) -> Option<Vec<String>>{
     let tags_o: Option<Vec<Tagmap>> = tagmap::table.filter(tagmap::note_id.eq(note_id))
         .load(conn).ok();
@@ -73,4 +83,10 @@ pub fn get(conn: &RConn, note_id: i32) -> Option<Vec<String>>{
         }
     }
     Some(out)
+}
+
+pub fn get_user(conn: &RConn, user_id: i32) -> Option<Vec<String>>{
+    let tags: Option<Vec<Tag>> = tags::table.filter(tags::user_id.eq(user_id))
+        .load(conn).ok();
+    tags.map(|mut ts| ts.iter_mut().map(|t|t.name.clone()).collect())
 }
