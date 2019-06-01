@@ -9,7 +9,7 @@ use rocket::http::{Status,Cookie, Cookies};
 use rocket_contrib::json::Json;
 
 // util structs
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize,Deserialize, Debug)]
 pub struct UserCDto{
     nick: String,
     pw: String,
@@ -100,7 +100,8 @@ pub fn r_create_f(_user: User) -> Status{
     super::DOUBLE_LOGIN()
 }
 #[post("/auth/create", format = "application/json", data = "<user>")]
-pub fn r_create(mut ck: Cookies, conn: Conn, user: Json<UserCDto>) -> Result<UserInfoT, &'static str>{
+pub fn r_create(mut ck: Cookies, conn: Conn, user: Json<UserCDto>) -> Result<UserInfoT, Status>{
+    info!("{:?}", user);
     match auth::create(&conn,
         &user.nick,
         &user.email,
@@ -110,7 +111,7 @@ pub fn r_create(mut ck: Cookies, conn: Conn, user: Json<UserCDto>) -> Result<Use
             start_session(&mut ck, user.id);
             Ok(user_info_rw(user))
         }
-        Err(err) => Err(err)
+        Err(_) => Err(super::FAILED())
     }
 }
 #[post("/auth/login", rank=1)]
@@ -118,14 +119,14 @@ pub fn r_login_f(_user: User) -> Status{
     super::DOUBLE_LOGIN()
 }
 #[post("/auth/login", format = "application/json", data = "<user>", rank=2)]
-pub fn r_login(mut ck: Cookies, conn: Conn, user: Json<UserLDto>) -> Result<UserInfoT,&'static str>{
+pub fn r_login(mut ck: Cookies, conn: Conn, user: Json<UserLDto>) -> Result<UserInfoT,Status>{
     let us = auth::login(&conn, &user.email, &user.pw);
     match us{
         Some(us) =>{
             start_session(&mut ck, us.id);
             Ok(user_info_rw(us))
         },
-        None => Err("ERR: Failed to log in")
+        None => Err(super::FAILED())
     }
 }
 #[get("/auth/logout")]

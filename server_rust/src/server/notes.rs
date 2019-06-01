@@ -86,7 +86,6 @@ pub fn r_get_all(conn: Conn, user: User) -> Option<Json<Vec<NoteDto>>>{
 
     Some(Json(out))
 }
-
 #[get("/ent/get/<id>")]
 pub fn r_get(conn: Conn, id: i32, user: User) -> Option<Json<NoteDto>>{
     notes::get(&conn, id, user.id).map(|n| {
@@ -97,7 +96,7 @@ pub fn r_get(conn: Conn, id: i32, user: User) -> Option<Json<NoteDto>>{
 }
 #[post("/ent/create",format = "application/json", data = "<note>")]
 pub fn r_create(conn: Conn, user: User, note: Json<NoteNewDto>) -> Option<Json<NoteDto>>{
-    println!("{:?}",note);
+    info!("{:?}",note);
     let res = match notes::create(&conn, note.to_new(user.id)){
         Some(n) => n,
         None => return None
@@ -110,14 +109,15 @@ pub fn r_create(conn: Conn, user: User, note: Json<NoteNewDto>) -> Option<Json<N
 }
 #[post("/ent/update/<id>", format = "application/json", data = "<note>")]
 pub fn r_update(conn: Conn, user: User, id: i32, note: Json<NoteUpdateDto>) -> Status{
+    info!("{:?}", note);
     match notes::update_safe(&conn, id, user.id, note.0){
         true => super::SUCCESS(),
         false => super::FORBIDDEN()
     }
 }
-
 #[post("/ent/update_tags/<id>", format = "application/json", data = "<ts>")]
 pub fn r_update_tags(conn: Conn, user: User, id: i32, ts: Json<Vec<String>>) -> Status{
+    info!("{:?}", ts);
     let note_o = notes::get(&conn, id, user.id);
     if note_o.is_none(){
         return super::FAILED();

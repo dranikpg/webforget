@@ -8,7 +8,7 @@ use super::schema::users;
 use bcrypt::{DEFAULT_COST, hash, verify};
 
 type E = diesel::result::Error;
-pub fn create(conn: &RConn, nick: &str, email: &str, rpw: &str) -> Result<User, &'static str>{
+pub fn create(conn: &RConn, nick: &str, email: &str, rpw: &str) -> Result<User, ()>{
     let pw = hash(&rpw, DEFAULT_COST).unwrap();
     let res = diesel::insert_into(users::table)
         .values(&NewUser{
@@ -20,9 +20,9 @@ pub fn create(conn: &RConn, nick: &str, email: &str, rpw: &str) -> Result<User, 
     match res{
         Ok(_) => match get_by_email(conn, email){
             Some(user) => Ok(user),
-            None => Err("ERR: Failed to create account")
+            None => Err(())
         },
-        Err(_) => Err("ERR: Failed to create account")
+        Err(_) => Err(())
     }
 }
 pub fn get_by_email(conn: &RConn, email: &str) -> Option<User>{

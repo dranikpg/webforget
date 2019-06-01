@@ -45,7 +45,7 @@ pub fn add_missing(conn: &RConn, user_id: i32, note_id: i32, tags: &Vec<String>)
     for tag in tags{
         let tag_id_o = tags::table.filter(tags::name.eq(tag)).get_result::<Tag>(conn).ok();
         if tag_id_o.is_none(){
-            println!("ERR NON EXISTING TAG!");
+            //warn!("ERR NON EXISTING TAG!");
             continue;
         }
         let tag_id = tag_id_o.unwrap().id;
@@ -65,7 +65,6 @@ pub fn add_missing(conn: &RConn, user_id: i32, note_id: i32, tags: &Vec<String>)
 pub fn get(conn: &RConn, note_id: i32) -> Option<Vec<String>>{
     let tags_o: Option<Vec<Tagmap>> = tagmap::table.filter(tagmap::note_id.eq(note_id))
         .load(conn).ok();
-    println!("{:?}", tags_o);
     if tags_o.is_none(){
         return None;
     }
