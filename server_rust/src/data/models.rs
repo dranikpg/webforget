@@ -24,6 +24,7 @@ pub struct Note{
     pub title: String,
     pub descr: String,
     pub link: String,
+    pub cdate: chrono::NaiveDate  //string for parsing
 }
 #[derive(Insertable)]
 #[table_name="notes"]
@@ -31,7 +32,8 @@ pub struct NewNote<'a>{
     pub user_id: i32,
     pub title: &'a str,
     pub link: &'a str,
-    pub descr: &'a str
+    pub descr: &'a str,
+    pub cdate: chrono::NaiveDate,
 }
 #[derive(AsChangeset)]
 #[derive(Serialize, Deserialize, Debug)]

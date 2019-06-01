@@ -5,6 +5,7 @@ table! {
         title -> Varchar,
         descr -> Text,
         link -> Varchar,
+        cdate -> Date,
     }
 }
 

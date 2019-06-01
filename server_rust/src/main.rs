@@ -18,6 +18,8 @@ extern crate serde_derive;
 #[macro_use]
 extern crate log;
 
+extern crate chrono;
+
 mod data;
 mod server;
 

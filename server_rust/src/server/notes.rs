@@ -17,7 +17,8 @@ pub struct NoteDto{
     title: String,
     descr: String,
     link: String, 
-    tags: Vec<String>
+    date: String,
+    tags: Vec<String>,
 }
 impl NoteDto{
     pub fn from_note(note: Note) -> NoteDto{
@@ -26,6 +27,7 @@ impl NoteDto{
             title: note.title,
             descr: note.descr,
             link: note.link,
+            date: note.cdate.format("%Y-%m-%d").to_string(),
             tags: Vec::new()
         }
     }
@@ -35,6 +37,7 @@ impl NoteDto{
             title: note.title.clone(),
             descr: note.descr.clone(),
             link: note.link.clone(), 
+            date: note.cdate.format("%Y-%m-%d").to_string(),
             tags: Vec::new()
         }
     }
@@ -63,7 +66,8 @@ impl NoteNewDto{
             user_id,
             title: &self.title,
             descr: &self.descr,
-            link: &self.link
+            link: &self.link,
+            cdate: chrono::Utc::today().naive_utc()
         }
     }
 }
