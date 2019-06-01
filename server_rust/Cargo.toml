@@ -8,6 +8,7 @@ edition = "2018"
 rocket = "*"
 rocket_codegen = "*"
 rocket_contrib = "*"
+rocket_cors = "*"
 
 bcrypt = "0.4"
 

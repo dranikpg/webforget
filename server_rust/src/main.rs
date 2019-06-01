@@ -3,6 +3,7 @@
 extern crate rocket;
 extern crate rocket_contrib;
 extern crate rocket_codegen;
+use rocket_cors;
 
 #[macro_use]
 extern crate diesel;
@@ -16,18 +17,27 @@ extern crate bcrypt;
 extern crate serde_derive;
 
 #[macro_use]
-extern crate log;
-
+extern crate log;   
 extern crate chrono;
 
 mod data;
 mod server;
 
 use server::data::*;
+use server::cors;
+
+//
+
+use rocket::{Request, Response};
+use rocket::fairing::{Fairing, Info, Kind};
+use rocket::http::{Header, ContentType, Method};
+use std::io::Cursor;
+
 
 fn main() {
     rocket::ignite()
         .manage(data::init())
+        .attach(cors::init())
         .mount("/",
             routes![
                 server::auth::r_create,
@@ -47,6 +57,11 @@ fn main() {
                 
                 server::tags::r_get_user,
                 server::tags::r_get_user_simple,
+
+                /*cors::r_auth_create,
+                cors::r_auth_login,
+                cors::r_auth_auto,
+                cors::r_auth_logout,*/
             ])
         .launch();
 }
