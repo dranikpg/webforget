@@ -84,3 +84,17 @@ pub fn get_user(conn: &RConn, user_id: i32) -> Option<Vec<String>>{
         .load(conn).ok();
     tags.map(|mut ts| ts.iter_mut().map(|t|t.name.clone()).collect())
 }
+
+fn get_c(conn: &RConn, tid: i32) -> i64{
+    let r: QueryResult<i64> = tagmap::table.filter(tagmap::tag_id.eq(tid))
+        .count().first(conn);
+    r.unwrap_or(0)
+}
+
+pub fn get_user_wcount(conn: &RConn, user_id: i32) -> Option<Vec<(String,i64)>>{
+    let tags: Option<Vec<Tag>> = tags::table.filter(tags::user_id.eq(user_id))
+        .load(conn).ok();
+    tags.map(|mut ts| ts.iter_mut().map(|t|
+        (t.name.clone(), get_c(conn, t.id))
+    ).collect())
+}

@@ -14,6 +14,8 @@ pub mod tags;
 pub mod schema;
 pub mod models;
 
+pub mod pagination;
+
 pub type RConn = MysqlConnection;
 pub type Pool = r2d2::Pool<ConnectionManager<RConn>>;
 pub type PoolConn = r2d2::PooledConnection<ConnectionManager<RConn>>;
@@ -31,4 +33,15 @@ pub fn init() -> Pool{
 
 pub fn check_affected(qr: diesel::QueryResult<usize>) -> bool{
     if qr.unwrap_or(0) > 0 {true} else {false}
+}
+
+
+pub fn map2<T, U>(a: Option<T>, b: Option<U>) -> Option<(T,U)> {
+    match a {
+        Some(x) => match b {
+            Some(y) => Some((x, y)),
+            None => None,
+        },
+        None => None,
+    }
 }

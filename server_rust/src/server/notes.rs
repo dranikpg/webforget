@@ -70,13 +70,14 @@ impl NoteNewDto{
 //struct for updating data
 type NoteUpdateDto<'a> = UpdateNote<'a>;
 //routes
-#[get("/ent/get")]
-pub fn r_get_all(conn: Conn, user: User) -> Option<Json<Vec<NoteDto>>>{
-    let notes_o = notes::get_all(&conn);
+#[get("/ent/get?<page>&<ps>")]
+pub fn r_get_all(conn: Conn, user: User, page:i64, ps: i64) 
+                        -> Option<Json<(Vec<NoteDto>,i64)>>{
+    let notes_o = notes::get_user_pg(&conn, user.id, page, ps);
     if notes_o.is_none(){
         return None;
     }
-    let notes = notes_o.unwrap();
+    let (notes,pc) = notes_o.unwrap();
     let mut out: Vec<NoteDto> = Vec::with_capacity(notes.len());
     for note in &notes{
         let mut dto = NoteDto::from_note_copy(note);
@@ -84,7 +85,7 @@ pub fn r_get_all(conn: Conn, user: User) -> Option<Json<Vec<NoteDto>>>{
         out.push(dto);
     }
 
-    Some(Json(out))
+    Some(Json((out,pc)))
 }
 #[get("/ent/get/<id>")]
 pub fn r_get(conn: Conn, id: i32, user: User) -> Option<Json<NoteDto>>{

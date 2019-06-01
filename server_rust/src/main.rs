@@ -44,6 +44,7 @@ fn main() {
                 server::notes::r_delete,
                 
                 server::tags::r_get_user,
+                server::tags::r_get_user_simple,
             ])
         .launch();
 }

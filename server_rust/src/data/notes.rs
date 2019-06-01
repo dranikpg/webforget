@@ -6,6 +6,7 @@ use super::models::{Note, NewNote, UpdateNote};
 use super::schema::notes;
 
 use super::check_affected;
+use super::pagination::*;
 
 /*pub fn get(conn: &RConn, id: i32) -> Option<Note>{
     notes::table.find(id).get_result::<Note>(conn).ok()
@@ -22,6 +23,18 @@ pub fn get_all(conn: &RConn) -> Option<Vec<Note>> {
 
 pub fn get_user(conn: &RConn, user_id: i32) -> Option<Vec<Note>>{
     notes::table.filter(notes::user_id.eq(user_id)).load(conn).ok()
+}
+
+//TODO unite in one query
+pub fn get_user_pg(conn: &RConn, user_id: i32,page: i64, pagesize: i64) -> Option<(Vec<Note>,i64)>{
+    let qbase = notes::table.filter(notes::user_id.eq(user_id));
+    let q2base = qbase.clone().order(notes::id.desc());
+
+    let q: QueryResult<i64> = qbase.count().first(conn);
+    let q2: QueryResult<Vec<Note>> = q2base.paginate(page).per_page(pagesize).load_pp(conn);
+
+    super::map2(q2.ok(),
+        q.ok())
 }
 
 pub fn create(conn: &RConn, note: NewNote) -> Option<Note>{

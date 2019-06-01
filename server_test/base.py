@@ -20,8 +20,8 @@ def auth_login(email, pw):
 
 #notes
 
-def notes_all():
-	return s.get(url+"/ent/get")
+def notes_all(page, ps=10):
+	return s.get(url+"/ent/get?page="+str(page)+"&ps="+str(ps))
 
 def notes_create(title, desc, link, tags):
 	data = {"title":title,"descr":desc,"link":link, "tags":tags}
@@ -45,6 +45,9 @@ def notes_update(id, title=None, descr=None, link=None):
 
 def tags_all():
 	return s.get(url+"/tg/all")
+
+def tags_list():
+	return s.get(url+"/tg/list")
 
 #simple
 
