@@ -139,5 +139,5 @@ pub fn r_auto(user: User) -> UserInfoT{
 }
 #[get("/auth/auto", rank = 2)]
 pub fn r_auto_f() -> Status{
-    super::DOUBLE_LOGIN()
+    super::FAILED()
 }

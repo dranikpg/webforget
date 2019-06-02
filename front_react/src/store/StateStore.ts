@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosResponse, AxiosError } from 'axios';
 
 import {APIURL} from '../util'
 
@@ -29,7 +29,8 @@ class StateStore extends EventEmitter{
             case AT.LOAD:{
                 this._init(); break;
             }
-            case AT.PROFILE_PRESENT:{
+            case AT.PROFILE_PRESENT:{   
+                this.emit(LEVENT);
                 this.emit(SEVENT); break;
             }
             case AT.PROFILE_REQUEST:{
@@ -48,26 +49,32 @@ class StateStore extends EventEmitter{
     }
 
     _load_offline(){
-        let nick = localStorage.get("user.nick");
+        let nick = localStorage.getItem("user.nick");
         if(nick==null){
             alert("Please connect to the internet to setup the app");
+            user = null;
             profile_impossible();
         }else{
-            user = {nick: nick, email: localStorage.get("user.email")};
+            console.log("Logged in offline");
+            user = {nick: nick, email: localStorage.getItem("user.email")!};
             profile_present(user);
         }
     }
 
     _load_online(){
+        let _this = this;
         axios.get(APIURL+"/auth/auto",{withCredentials: true}).then(function (rsp){
-            if(rsp.status != 200){
+            user = rsp.data;
+            _this._save_profile();
+            profile_present(user);
+        }).catch(function (err: AxiosError){    //try offline
+            if(err.response){
+                user = null; 
                 profile_request();
-            }else{
-                user = rsp.data;
-                profile_present(user);
+            }else{ //network fault
+                online = false;
+                _this._load_offline();
             }
-        }).catch(function (err){
-            profile_request();
         });
     }
 
@@ -94,19 +101,23 @@ class StateStore extends EventEmitter{
     }
 
     _login_return(resp: AxiosResponse){
-        if(resp.status != 200)this._login_fail(resp.status);
+        if(resp.status != 200)this._login_fail(null);
         else{
             user = resp.data;
-            console.log(user, document.cookie);
-            this.emit(LEVENT);
+            this._save_profile();
             profile_present(user);
         }
     }
 
-    _login_fail(err: any){
-        console.log(err);
+    _login_fail(err: AxiosError|null){
         user = null;
         this.emit(LEVENT);
+    }
+
+    _save_profile(){
+        console.log(user);
+        localStorage.setItem("user.nick", user!.nick);
+        localStorage.setItem("user.email", user!.email);
     }
 
     //
@@ -115,8 +126,16 @@ class StateStore extends EventEmitter{
         return online;
     }
 
+    authed() :boolean{
+        return user != null;
+    }
+
     user(){
         return user;
+    }
+
+    loading(){
+        return user == undefined;
     }
 
     //
