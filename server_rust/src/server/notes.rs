@@ -9,6 +9,7 @@ use crate::data::models::User as MUser;
 use crate::data::models::{Note,NewNote, UpdateNote};
 use crate::server::data::Conn;
 
+const FORMAT: &'static str = "%Y-%m-%d";
 
 //struct for returning data
 #[derive(Serialize, Deserialize, Debug)]
@@ -27,7 +28,7 @@ impl NoteDto{
             title: note.title,
             descr: note.descr,
             link: note.link,
-            date: note.cdate.format("%Y-%m-%d").to_string(),
+            date: note.cdate.format(FORMAT).to_string(),
             tags: Vec::new()
         }
     }
@@ -37,7 +38,7 @@ impl NoteDto{
             title: note.title.clone(),
             descr: note.descr.clone(),
             link: note.link.clone(), 
-            date: note.cdate.format("%Y-%m-%d").to_string(),
+            date: note.cdate.format(FORMAT).to_string(),
             tags: Vec::new()
         }
     }
@@ -53,21 +54,32 @@ impl NoteDto{
     }
 }
 //struct for receiving data
-#[derive(Serialize, Deserialize, Debug)]
-pub struct NoteNewDto{
-    title: String,
-    descr: String,
-    link: String, 
-    tags: Vec<String>
+fn serde_default_date() -> &'static str{
+    return "N";
 }
-impl NoteNewDto{
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NoteNewDto<'a>{
+    title: &'a str,
+    descr: &'a str,
+    link: &'a str,
+    tags: Vec<String>,
+    #[serde(default = "serde_default_date")]
+    date: &'a str
+}
+impl<'a> NoteNewDto<'a>{
     pub fn to_new(&self, user_id: i32) -> NewNote{
+        let date = if self.date == "N" {
+            chrono::Utc::today().naive_utc()
+        }else{
+            chrono::NaiveDate::parse_from_str(self.date, FORMAT).unwrap()
+        };
         NewNote{
             user_id,
             title: &self.title,
             descr: &self.descr,
             link: &self.link,
-            cdate: chrono::Utc::today().naive_utc()
+            cdate: date
         }
     }
 }
