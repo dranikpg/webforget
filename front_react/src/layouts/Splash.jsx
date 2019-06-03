@@ -7,7 +7,7 @@ export class Splash extends React.Component{
         super(props);
     }
     render(){
-        return (<p>SPLASH</p>)
+        return (<p>SPLASH {this.props.msg}</p>)
     }
 }
 

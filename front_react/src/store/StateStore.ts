@@ -27,7 +27,7 @@ class StateStore extends EventEmitter{
     _action(action: FAction){
         switch(action.actionType){
             case AT.LOAD:{
-                this._init(); break;
+                this.init(); break;
             }
             case AT.PROFILE_PRESENT:{   
                 this.emit(LEVENT);
@@ -39,7 +39,7 @@ class StateStore extends EventEmitter{
         }
     }
 
-    _init(){
+    init(){
         online = navigator.onLine;
         if(online){
             this._load_online();
@@ -65,6 +65,7 @@ class StateStore extends EventEmitter{
         let _this = this;
         axios.get(APIURL+"/auth/auto",{withCredentials: true}).then(function (rsp){
             user = rsp.data;
+            console.log("present");
             _this._save_profile();
             profile_present(user);
         }).catch(function (err: AxiosError){    //try offline
@@ -126,7 +127,7 @@ class StateStore extends EventEmitter{
         return online;
     }
 
-    authed() :boolean{
+    authed(): boolean{
         return user != null;
     }
 
