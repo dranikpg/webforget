@@ -22,16 +22,11 @@ interface Update{
 
 let notes : Array<Note> = new Array<Note>(); //notes
 let server_nc: number|undefined = undefined;                   //notes on server
-
 let queried: boolean = false;               //queried
 let unsync_create: number =  0;
-
 let local_updates = new Array<Update>();    //updates to try next time
 
-let sync_cd: number = 0;
-
 const LISTC: string = 'LC';
-const SYNC: string = 'Sc';
 
 class NoteStore extends EventEmitter{
 
@@ -41,34 +36,8 @@ class NoteStore extends EventEmitter{
     }
 
     _action(action :FAction){
-        if(action.actionType == AT.PROFILE_PRESENT){
-            this.init();//s
-            let _self = this;
-            /*setTimeout(function() { 
-                _self.note_create_instant({
-                    title:"delay_4",
-                    descr:"delay_4",
-                    link:"delay_4",
-                    tags: ["delay_tag3","t2"],
-                    /*//*/
-                    id:0,
-                    date: "",
-                    sync:false
-                });
-             }, 7000);*/
-        }
-    }
-
-    // init
-
-    //called on profile init
-    init(){
-        if(this.online()){
-            this.local_update_read();
-            if(local_updates.length > 0) this.start_sync();
-        }else{
-
-        }
+        if(action.actionType == AT.SYNC_END)this.end_sync();
+        else if(action.actionType == AT.SYNC_AFTERBURN) this.afterburn_sync();
     }
 
     // SYNC
@@ -85,43 +54,42 @@ class NoteStore extends EventEmitter{
         console.log("Loaded upd: " , local_updates);
     }
 
+    //
+
+    sync_required(){
+        if(!this.online())return;
+        this.local_update_read();
+        if(local_updates.length == 0)return;
+        this.start_sync();
+    }
 
     start_sync(){
-        console.log("sync go!");
-        sync_cd = local_updates.length;
         for(var updk in local_updates){
             let upd = local_updates[updk];
             switch(upd.action){
                 case ActionT.CREATE:{
+                    StateStore.sync_inc();
                     this.note_created(upd.note!);
                     break;
                 }
             }
         }
-        this.emit(SYNC);
     }
 
     end_sync(){
-        console.log("sync end");
         this.local_updates_save();
+    }
 
-        let _self = this;
-        setTimeout(function() { 
-            _self.load_first();
-        },5000);
-
-        this.emit(SYNC);
+    afterburn_sync(){
+        this.load_first();
     }
 
     upd_sync(){
-        sync_cd--;
-        if(sync_cd == 0){
-            this.end_sync();
-        }
+        StateStore.sync_update();
     }
 
     syncing(): boolean{
-        return sync_cd > 0;
+        return StateStore.syncing();
     }
 
     // LOAD
@@ -306,6 +274,8 @@ class NoteStore extends EventEmitter{
                 break;
             }
         }
+
+        if(this.syncing())this.upd_sync();
     }
 
     _upd_fail(note: Note){
@@ -315,7 +285,8 @@ class NoteStore extends EventEmitter{
                 return;
             }
         }
-        local_updates.push({action: ActionT.UPDATE, note: note , id: note.id!})
+        if(this.syncing()) this.upd_sync();
+        else local_updates.push({action: ActionT.UPDATE, note: note , id: note.id!});
     }
     
     //
@@ -340,13 +311,7 @@ class NoteStore extends EventEmitter{
         return StateStore.online()
     }
 
-    c_sync(l: EventListener){
-        this.on(SYNC,l);
-    }
-
-    c_rm_sync(l: EventListener){
-        this.removeListener(SYNC,l);
-    }
+    //
 
     c_list(l: EventListener){
         this.on(LISTC, l);

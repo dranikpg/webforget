@@ -27,7 +27,7 @@ pub fn init() -> Pool{
         .expect("DATABASE_URL must be set");
     let manager = ConnectionManager::<MysqlConnection>::new(database_url);
     Pool::builder()
-        .max_size(2)
+        .max_size(5)
         .build(manager).expect("Pool creation error")
 }
 

@@ -2,9 +2,11 @@ import React from 'react'
 import {Route, Switch } from "react-router-dom";
 import { withRouter } from "react-router";
 
-import StateStore from './store/StateStore';
+import UserStore from './store/UserStore';
 import NoteStore from './store/NoteStore';
+import StateStore from './store/StateStore';
 
+import {dp_fullinit_request} from './actions/func';
 
 import Splash from './layouts/Splash.jsx'
 import Auth from './layouts/Auth.jsx';
@@ -17,36 +19,44 @@ class App extends React.Component{
         this.state = {
             loading:StateStore.loading(),
             syncing: false, 
-            authed:false}
+            authed:false, 
+            full_loaded: false
+        }
+    }
+
+    _upd_auth(){
+        this.setState({
+            ...this.state,
+            authed: UserStore.authed()
+        });
     }
 
     _upd_state(){
+        if(this.state.loading && StateStore.loaded())this.check_full_mode();
         this.setState({
                 ...this.state,
-                loading: false,
-                authed: StateStore.authed()
+                loading: StateStore.loading(),
+                sync: StateStore.syncing(),
+                full_loaded: StateStore.full_loaded()
         });
     }
 
-    _upd_sync(){
-        this.setState({
-            ...this.state,
-            syncing: NoteStore.syncing()
-        });
+    check_full_mode(){
+        console.log("Full check");
+        dp_fullinit_request();
     }
 
     componentDidMount(){
-        if(StateStore.loading()){
-            this.l_state = this._upd_state.bind(this);
-            StateStore.c_state(this.l_state);
-        }
-        this.l_sync = this._upd_sync.bind(this);
-        NoteStore.c_sync(this.l_sync);
+        StateStore.c_state(this._upd_state.bind(this));
+        UserStore.c_auth(this._upd_auth.bind(this));
+
+        if(StateStore.loaded())this.check_full_mode();
 
         this.setState({
                 loading:StateStore.loading(), 
-                authed: StateStore.authed(),
-                syncing: NoteStore.syncing()});
+                authed: UserStore.authed(),
+                syncing: StateStore.syncing(),
+                full_loaded: StateStore.full_loaded()});
     }
     
     render_splash(msg){

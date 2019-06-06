@@ -1,6 +1,6 @@
 import React from 'react';
 
-import State from '../store/StateStore';
+import State from '../store/UserStore';
 
 export class Splash extends React.Component{
     constructor(props){

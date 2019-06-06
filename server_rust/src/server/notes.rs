@@ -72,7 +72,8 @@ impl<'a> NoteNewDto<'a>{
         let date = if self.date == "N" {
             chrono::Utc::today().naive_utc()
         }else{
-            chrono::NaiveDate::parse_from_str(self.date, FORMAT).unwrap()
+            chrono::NaiveDate::parse_from_str(self.date, FORMAT)
+		.unwrap_or(chrono::Utc::today().naive_utc())
         };
         NewNote{
             user_id,

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import State from '../store/StateStore';
+import State from '../store/UserStore';
 import Notes from '../store/NoteStore';
 
 import InfiniteScroll from 'react-infinite-scroller';

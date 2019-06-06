@@ -12,9 +12,6 @@ import './styles/index.css';
 import App from './App';
 
 
-axios.defaults.headers.common['Access-Control-Request-Headers'] = null
-axios.defaults.headers.common['Access-Control-Request-Method'] = null
-
 start();
 
 

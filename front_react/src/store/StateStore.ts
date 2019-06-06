@@ -1,162 +1,129 @@
-import { EventEmitter } from 'events';
-import axios, { AxiosResponse, AxiosError } from 'axios';
-
-import {APIURL} from '../util'
+import { EventEmitter } from "events";
 
 import Dispatcher from '../dispatcher';
 import AT from '../actions/types';
-import {profile_present, profile_request, profile_impossible} from '../actions/func';
 
 import {FAction, User} from '../common';
+import NoteStore from "./NoteStore";
+import { dp_sync_end, dp_fullinit } from "../actions/func";
 
-let user: User|null|undefined = undefined;
+let loaded: boolean = false;
+let full_loaded: boolean = false;
 let online: boolean = false;
 
-let authrq: boolean = false;
+let sync: number = 0;
 
-const LEVENT = 'L';
-const SEVENT = 'S';
+const LCHANGE = 'L';
 
 class StateStore extends EventEmitter{
 
     constructor(){
         super();
+        online = navigator.onLine;
         Dispatcher.register(this._action.bind(this));
     }
 
-    _action(action: FAction){
-        switch(action.actionType){
-            case AT.LOAD:{
-                this.init(); break;
+    //
+
+    _action(a: FAction){
+        console.log(a);
+        switch(a.actionType){
+            case AT.OFFLINE:{
+                online = false;
+                break;
             }
-            case AT.PROFILE_PRESENT:{   
-                this.emit(LEVENT);
-                this.emit(SEVENT); break;
+            case AT.PROFILE_PRESENT:{
+                this.set_loaded();
+                break;
+            }
+            case AT.PROFILE_IMPOSSIBLE:{
+                this.set_loaded();
+                break;
             }
             case AT.PROFILE_REQUEST:{
-                this.emit(SEVENT); break;
+                this.set_loaded();
+                break;
+            }
+            case AT.FULL_INIT_REQUEST:{
+                this.sync_start();
+                break;
+            }
+            case AT.FULL_INIT:{
+                this.set_full_loaded();
+                break;
             }
         }
     }
 
-    init(){
-        online = navigator.onLine;
-        if(online){
-            this._load_online();
-        }else{
-            this._load_offline();
-        }
+    set_loaded(){
+        if(loaded)return;
+        loaded = true;
+        this.emit(LCHANGE);
     }
 
-    _load_offline(){
-        let nick = localStorage.getItem("user.nick");
-        if(nick==null){
-            alert("Please connect to the internet to setup the app");
-            user = null;
-            profile_impossible();
-        }else{
-            console.log("Logged in offline");
-            user = {nick: nick, email: localStorage.getItem("user.email")!};
-            profile_present(user);
-        }
-    }
-
-    _load_online(){
-        let _this = this;
-        axios.get(APIURL+"/auth/auto",{withCredentials: true}).then(function (rsp){
-            user = rsp.data;
-            console.log("present");
-            _this._save_profile();
-            profile_present(user);
-        }).catch(function (err: AxiosError){    //try offline
-            if(err.response){
-                user = null; 
-                profile_request();
-            }else{ //network fault
-                online = false;
-                _this._load_offline();
-            }
-        });
+    set_full_loaded(){
+        if(full_loaded)return;
+        full_loaded = true;
+        this.emit(LCHANGE);
     }
 
     //
 
-    create_account(nick: string, email:string, pw:string){
-        if(authrq)return; authrq = true;
-        axios.post(APIURL+"/auth/create",
-            {pw: pw, email: email, nick: nick},
-            {withCredentials: true})
-        .then(this._login_return.bind(this))
-        .catch(this._login_fail.bind(this))
-        .finally(function f(){authrq=false;})
+    sync_inc(){
+        sync++;
     }
 
-    login(email: string, pw: string){
-        if(authrq)return; authrq = true;
-        axios.post(APIURL+"/auth/login",
-            {pw: pw, email: email},
-            {withCredentials: true})
-        .then(this._login_return.bind(this))
-        .catch(this._login_fail.bind(this))
-        .finally(function f(){authrq=false;})
-    }
-
-    _login_return(resp: AxiosResponse){
-        if(resp.status != 200)this._login_fail(null);
-        else{
-            user = resp.data;
-            this._save_profile();
-            profile_present(user);
+    sync_update(){
+        sync--;
+        if(sync == 0){
+            this.sync_end();
         }
     }
 
-    _login_fail(err: AxiosError|null){
-        user = null;
-        this.emit(LEVENT);
+    sync_start(){
+        NoteStore.sync_required();
+        if(sync > 0){
+            this.emit(LCHANGE);
+        }else{
+            console.log("Sync skipped");
+            dp_fullinit();
+        }
     }
 
-    _save_profile(){
-        console.log(user);
-        localStorage.setItem("user.nick", user!.nick);
-        localStorage.setItem("user.email", user!.email);
+    sync_end(){
+        dp_sync_end();
+        this.emit(LCHANGE);
     }
 
     //
 
-    online(){
+    syncing(): boolean{
+        return sync != 0;
+    }
+
+    online() : boolean{
         return online;
     }
 
-    authed(): boolean{
-        return user != null;
+    loaded(): boolean{
+        return loaded;
     }
 
-    user(){
-        return user;
+    loading(): boolean{
+        return !loaded;
     }
 
-    loading(){
-        return user == undefined;
+    full_loaded(): boolean{
+        return full_loaded;
     }
 
     //
-
     c_state(l: EventListener){
-        this.on(SEVENT, l);
+        this.on(LCHANGE,l);
     }
-
     c_rm_state(l: EventListener){
-        this.removeListener(SEVENT, l);
+        this.removeListener(LCHANGE,l);
     }
-
-    c_auth(l: EventListener){
-        this.on(LEVENT, l);
-    }
-    
-    c_rm_auth(l: EventListener){
-        this.removeListener(LEVENT, l);
-    }
-
 }
 
 export default new StateStore();

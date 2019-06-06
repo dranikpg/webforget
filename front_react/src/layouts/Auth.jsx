@@ -1,6 +1,6 @@
 import React, { Props } from 'react';
 
-import State from '../store/StateStore';
+import State from '../store/UserStore';
 
 import Container from '@material-ui/core/Container';
 import TextField from '@material-ui/core/TextField';
