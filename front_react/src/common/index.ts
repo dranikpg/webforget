@@ -3,6 +3,12 @@ export interface FAction {
     payload: object | null;
 }
 
+export interface Search{
+    tags: Set<String>|null,
+    link: string|null,
+    title: string|null,
+}
+
 export interface User{
     nick: string, 
     email: string

@@ -8,7 +8,7 @@ import {FAction, User, Note} from '../common';
 import axios, { AxiosResponse, AxiosError } from "axios";
 import {APIURL} from '../util'
 
-export const PAGE_SIZE = 15;
+export const PAGE_SIZE = 10;
 
 enum ActionT{
     DELETE, CREATE, UPDATE
@@ -35,9 +35,10 @@ class NoteStore extends EventEmitter{
         Dispatcher.register(this._action.bind(this));
     }
 
-    _action(action :FAction){
-        if(action.actionType == AT.SYNC_END)this.end_sync();
-        else if(action.actionType == AT.SYNC_AFTERBURN) this.afterburn_sync();
+    _action(a :FAction){
+        if(a.actionType == AT.NOTES_EXTEND) this.load_more();
+        else if(a.actionType == AT.SYNC_END)this.end_sync();
+        else if(a.actionType == AT.SYNC_AFTERBURN) this.afterburn_sync();
     }
 
     // SYNC
@@ -296,6 +297,10 @@ class NoteStore extends EventEmitter{
     }
 
     //
+
+    server_count(){
+        return server_nc;
+    }
     
     notes(): Array<Note>{
         return notes;
@@ -304,7 +309,7 @@ class NoteStore extends EventEmitter{
     has_more(): boolean{
         if(this.online() && server_nc == undefined)return true;
         if(!this.online())return false;
-        else return (notes.length-unsync_create) < server_nc!;
+        return (notes.length-unsync_create) < server_nc!;
     }
 
     online() : boolean {

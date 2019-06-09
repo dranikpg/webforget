@@ -1,7 +1,7 @@
 import D from '../dispatcher'
 
 import AT from './types'
-import {FAction, User} from '../common';
+import {FAction, User, Search} from '../common';
 
 export function start(){
     D.dispatch({
@@ -34,13 +34,52 @@ function dp_afterburn(){
 
 //
 
+export function dp_query(s: Search|undefined){
+    D.dispatch({
+        actionType: AT.QUERY,
+        payload: s
+    });
+}
+
+export function dp_query_more(){
+    D.dispatch({
+        actionType: AT.QUERY_MORE,
+    });
+}
+
+//
+
+export function dp_search(s: Search){
+    D.dispatch({
+        actionType: AT.SEARCH,
+        payload: s
+    });
+} 
+
+export function dp_search_dismiss(s: Search){
+    D.dispatch({
+        actionType: AT.SEARCH_DISMISS
+    });
+}
+
+export function dp_search_extend(s: Search){
+    D.dispatch({
+        actionType: AT.SEARCH_EXTEND
+    });
+}
+
+export function dp_notes(){
+    D.dispatch({
+        actionType: AT.NOTES_EXTEND
+    });
+}
+
+//
+
 export function dp_fullinit_request(){
-    setTimeout(()=>{
-        D.dispatch({
-            actionType: AT.FULL_INIT_REQUEST,
-        });
-    },5);
-    
+    D.dispatch({
+        actionType: AT.FULL_INIT_REQUEST,
+    });
 }
 
 export function dp_fullinit(){

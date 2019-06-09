@@ -10,7 +10,10 @@ import {dp_fullinit_request} from './actions/func';
 
 import Splash from './layouts/Splash.jsx'
 import Auth from './layouts/Auth.jsx';
-import Test from './layouts/Test.jsx';
+import Test from './layouts/Test';
+import Base from './layouts/Base';
+
+let frender = true;
 
 class App extends React.Component{
 
@@ -32,18 +35,12 @@ class App extends React.Component{
     }
 
     _upd_state(){
-        if(this.state.loading && StateStore.loaded())this.check_full_mode();
         this.setState({
                 ...this.state,
                 loading: StateStore.loading(),
                 sync: StateStore.syncing(),
                 full_loaded: StateStore.full_loaded()
         });
-    }
-
-    check_full_mode(){
-        console.log("Full check");
-        dp_fullinit_request();
     }
 
     componentDidMount(){
@@ -67,15 +64,24 @@ class App extends React.Component{
         return <Auth/>
     }
 
+    render_main(){
+        if(frender){
+            setTimeout(()=>dp_fullinit_request(),10);
+            frender = false;
+        }
+        return <Base/>;
+    }
+
     render(){
         if(this.state.loading)return this.render_splash("Loading");
         if(!this.state.authed)return this.render_auth();
         if(this.state.syncing)return this.render_splash("Syncing");
-        return (
+        return this.render_main();
+        /*return (
             <Switch>   
                 <Route path="/" component={Test} />
             </Switch>
-        );
+        );*/
     }
 }
 

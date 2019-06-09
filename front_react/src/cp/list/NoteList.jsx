@@ -1,13 +1,14 @@
 import React from 'react';
+import { dp_query, dp_query_more } from '../../actions/func';
 
-import State from '../store/UserStore';
-import DAS from '../store/DataAccessStore';
+import DAS from '../../store/DataAccessStore';
+import State from '../../store/UserStore';
+import NoteStore from '../../store/NoteStore';
 
 import InfiniteScroll from 'react-infinite-scroller';
-import { dp_query, dp_query_more } from '../actions/func';
-import NoteStore from '../store/NoteStore';
+import NoteEntry from './NoteEntry';
 
-class Test extends React.Component{
+class NoteList extends React.Component{
     constructor(props){
         super(props);
         this.state = {
@@ -15,29 +16,30 @@ class Test extends React.Component{
         };
         DAS.c_data(this.upd_list.bind(this));
     }
-    upd_list(){
-        this.setState({items:DAS.get()})
-    }
+   
     render(){
-        console.log("REDRAW", DAS.has_more());
         let local = [];
+
         for(var key in this.state.items){
-            local.push( <p> {JSON.stringify(this.state.items[key])} </p> );
+            local.push(<NoteEntry 
+                    e={this.state.items[key]}
+                    paddingb="10px" /> );
         }
+
         return (
             <InfiniteScroll
                 pageStart={0}
                 initialLoad={true}
-                loadMore={this.loadFunc.bind(this)}
+                loadMore={this.load_func.bind(this)}
                 hasMore={DAS.has_more()}
-                loader={<div className="loader" key={0}>Loading fuck...</div>}>
+                loader={<div className="loader" key={0}>Loading...</div>}>
                 <div>
                     {local}
                 </div>
                 </InfiniteScroll>
         );
     }
-    loadFunc(page){
+    load_func(page){
         console.log("QUERY MORE");
         setTimeout(()=>dp_query_more(),10);
     }
@@ -45,6 +47,9 @@ class Test extends React.Component{
         console.log("RQ", DAS.has_more());
         return DAS.has_more();
     }
+    upd_list(){
+        this.setState({items:DAS.get()})
+    }
 }
 
-export default Test;
+export default NoteList;
