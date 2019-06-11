@@ -109,3 +109,11 @@ export function dp_profile_impossible(){
         actionType: AT.PROFILE_IMPOSSIBLE
     });
 }
+
+//
+
+export function dp_drop_local(){
+    D.dispatch({
+        actionType:AT.NOTES_DROP_LOCAL
+    });
+}

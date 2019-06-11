@@ -31,3 +31,13 @@ export interface NoteUpdate{
     link: string|undefined, 
     tags: Array<string>|undefined,
 }
+
+export interface Message{
+    msg: string,
+    timeout: number,
+    warn: boolean
+    action:undefined|{
+        msg:string,
+        cb: ()=>void
+    }
+}

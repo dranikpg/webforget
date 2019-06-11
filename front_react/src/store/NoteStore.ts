@@ -41,7 +41,9 @@ class NoteStore extends EventEmitter{
         if(a.actionType == AT.NOTES_EXTEND) this.load_more();
         else if(a.actionType == AT.SYNC_END)this.end_sync();
         else if(a.actionType == AT.SYNC_AFTERBURN) this.afterburn_sync();
+        else if(a.actionType == AT.NOTES_DROP_LOCAL) this.local_drop();
     }
+
 
     // SYNC
 
@@ -64,6 +66,15 @@ class NoteStore extends EventEmitter{
                 break;
             }
         }
+    }
+
+    local_drop(){
+        local_updates = [];
+        this.local_updates_save();
+    }
+
+    local_size(){
+        return local_updates.length;
     }
 
     //

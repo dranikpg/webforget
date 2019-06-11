@@ -1,7 +1,10 @@
 import React from 'react';
+
+import { Container } from '@material-ui/core';
+
 import Bar from '../cp/deco/Bar';
 import NoteList from '../cp/list/NoteList';
-import { Container } from '@material-ui/core';
+import ToastMG from '../cp/deco/ToastMG';
 
 const belowtbStyle = {
     paddingTop: '5em'
@@ -19,6 +22,7 @@ class Base extends React.Component{
                 <Container maxWidth="lg" style={belowtbStyle}>
                     <NoteList/>
                 </Container>
+                <ToastMG/>
             </React.Fragment>
             
         );
