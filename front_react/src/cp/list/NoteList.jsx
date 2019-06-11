@@ -11,21 +11,27 @@ import NoteEntry from './NoteEntry';
 class NoteList extends React.Component{
     constructor(props){
         super(props);
-        this.state = {
-            items: []
-        };
+        let it = DAS.get();
+        if(it == undefined){
+            this.state = {items:[]};
+        }else{
+            this.state = {items:it};
+        }
         DAS.c_data(this.upd_list.bind(this));
     }
-   
-    render(){
-        let local = [];
 
+    render_loading(){
+        return <p>Loading</p>
+    }  
+
+    render(){
+        if(DAS.loading())return this.render_loading();
+        let local = [];
         for(var key in this.state.items){
             local.push(<NoteEntry 
                     e={this.state.items[key]}
                     paddingb="10px" /> );
         }
-
         return (
             <InfiniteScroll
                 pageStart={0}

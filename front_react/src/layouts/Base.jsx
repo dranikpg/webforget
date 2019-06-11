@@ -13,7 +13,6 @@ class Base extends React.Component{
         super(props);
     }
     render(){
-        console.log(typeof stl);
         return (
             <React.Fragment>
                 <Bar/>

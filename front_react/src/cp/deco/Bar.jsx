@@ -3,7 +3,8 @@ import AppBar from '@material-ui/core/AppBar';
 
 import Typography from '@material-ui/core/Typography';
 import Toolbar from '@material-ui/core/Toolbar';
-import { Button } from '@material-ui/core';
+import { Button,  } from '@material-ui/core';
+import { Link } from 'react-router-dom';
 import SearchBar from './SearchBar';
 
 const toolbStyle = {paddingLeft: "5vw", paddingRight:"10vw" };
@@ -18,7 +19,8 @@ class Bar extends React.Component{
                     <Typography style={typoStyle} variant="h5">
                         Webforget
                     </Typography>
-                    <Button variant="outlined" color="inherit">
+                    <Button variant="outlined" color="inherit"
+                        component={Link} to={"/create"}>
                         ADD NOTE
                     </Button>
                     <div style={searchDivStyle}>

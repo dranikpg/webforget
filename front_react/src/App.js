@@ -10,8 +10,8 @@ import {dp_fullinit_request} from './actions/func';
 
 import Splash from './layouts/Splash.jsx'
 import Auth from './layouts/Auth.jsx';
-import Test from './layouts/Test';
 import Base from './layouts/Base';
+import Edit from './layouts/Edit';
 
 let frender = true;
 
@@ -38,7 +38,7 @@ class App extends React.Component{
         this.setState({
                 ...this.state,
                 loading: StateStore.loading(),
-                sync: StateStore.syncing(),
+                syncing: StateStore.syncing(),
                 full_loaded: StateStore.full_loaded()
         });
     }
@@ -76,12 +76,13 @@ class App extends React.Component{
         if(this.state.loading)return this.render_splash("Loading");
         if(!this.state.authed)return this.render_auth();
         if(this.state.syncing)return this.render_splash("Syncing");
-        return this.render_main();
-        /*return (
-            <Switch>   
-                <Route path="/" component={Test} />
+        return (
+            <Switch>  
+                <Route path="/create" component={Edit}/> 
+                <Route path="/edit/:id" component={Edit}/> 
+                <Route path="/" render={this.render_main}/>
             </Switch>
-        );*/
+        );
     }
 }
 

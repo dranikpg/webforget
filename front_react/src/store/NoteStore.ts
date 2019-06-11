@@ -6,7 +6,8 @@ import AT from '../actions/types';
 import {FAction, User, Note} from '../common';
 
 import axios, { AxiosResponse, AxiosError } from "axios";
-import {APIURL} from '../util'
+import {APIURL, copy_note} from '../util'
+import { number } from "prop-types";
 
 export const PAGE_SIZE = 10;
 
@@ -23,7 +24,8 @@ interface Update{
 let notes : Array<Note> = new Array<Note>(); //notes
 let server_nc: number|undefined = undefined;                   //notes on server
 let queried: boolean = false;               //queried
-let unsync_create: number =  0;
+let unsync_create: number = 0;
+let unsync_delete: number = 0;
 let local_updates = new Array<Update>();    //updates to try next time
 
 const LISTC: string = 'LC';
@@ -55,6 +57,15 @@ class NoteStore extends EventEmitter{
         console.log("Loaded upd: " , local_updates);
     }
 
+    local_delwid(id: number){
+        for(var i = 0; i < local_updates.length; i++){
+            if(local_updates[i].id == id){
+                local_updates.splice(i);
+                break;
+            }
+        }
+    }
+
     //
 
     sync_required(){
@@ -71,6 +82,16 @@ class NoteStore extends EventEmitter{
                 case ActionT.CREATE:{
                     StateStore.sync_inc();
                     this.note_created(upd.note!);
+                    break;
+                }
+                case ActionT.UPDATE:{
+                    StateStore.sync_inc();
+                    this.note_updated(upd.note!);
+                    break;
+                }
+                case ActionT.DELETE:{
+                    StateStore.sync_inc();
+                    this.note_deleted(upd.id!);
                     break;
                 }
             }
@@ -121,14 +142,12 @@ class NoteStore extends EventEmitter{
             let note = notes[notkey];
             //if(note.id > 0 && note.id <  minid)break;
             if(mapped[note.id] != undefined) {
-                console.log("deleting", note.id);
                 delete mapped[note.id];
             }
         }
 
         for(notkey in mapped){
             let note = mapped[notkey];
-            console.log("insertng", note);
             note.synced = true;
             notes.unshift(note);
         }
@@ -214,11 +233,7 @@ class NoteStore extends EventEmitter{
             }
         }
          //delete pending update
-        for(var i = 0; i < local_updates.length; i++){
-            if(local_updates[i].id == note.id){
-                local_updates.splice(i);
-            }
-        }
+        this.local_delwid(note.id);
 
         note.id = newid;
         unsync_create = Math.max(unsync_create-1,0);
@@ -247,9 +262,9 @@ class NoteStore extends EventEmitter{
         if(!this.online())this._upd_fail(note);
         else{
             let _self = this;
-            axios.post(APIURL+"/ent/upd/"+note.id, note, {withCredentials:true})
+            axios.post(APIURL+"/ent/update/"+note.id, note, {withCredentials:true})
             .then((rsp) => {
-                return axios.post(APIURL+"/ent/upd_tags/"+note.id, note.tags, {withCredentials:true})
+                return axios.post(APIURL+"/ent/update_tags/"+note.id, note.tags, {withCredentials:true})
             })
             .then(function(rsp){
                 _self._upd_then.bind(_self)(note);
@@ -261,6 +276,7 @@ class NoteStore extends EventEmitter{
     }
     
     _upd_then(note: Note){
+        console.log("Update success");
         //find node and mark as sync
         for(var i = 0; i < notes.length; i++){
             if(notes[i].id == note.id){
@@ -269,31 +285,103 @@ class NoteStore extends EventEmitter{
             }
         }
         //delete pending update
-        for(var i = 0; i < local_updates.length; i++){
-            if(local_updates[i].id == note.id){
-                local_updates.splice(i);
-                break;
-            }
-        }
+        this.local_delwid(note.id);
 
         if(this.syncing())this.upd_sync();
     }
 
     _upd_fail(note: Note){
-        //check if mention of this note already exists
-        for(var i = 0; i < local_updates.length; i++){
-            if(local_updates[i].id == note.id){
+        console.log("Update failed")
+        if(this.syncing()) this.upd_sync();
+        else {
+            //check if mention of this note already exists
+            for(var i = 0; i < local_updates.length; i++){
+                if(local_updates[i].id == note.id){
+                    let lo = local_updates[i];
+                    if(lo.action == ActionT.CREATE){ //allow safe update of created unsynced notes
+                        copy_note(note,lo.note);
+                    }
+                    return;
+                }
+            }
+            local_updates.push({action: ActionT.UPDATE, note: note , id: note.id!});
+            this.local_updates_save();
+        }
+    }
+
+    //DELETE
+
+    note_delete_instant(id: number){
+        for(var i = 0; i < notes.length; i++){
+            if(notes[i].id == id){
+                notes.splice(i,1);
+                break;
+            }
+        }
+        unsync_delete++;
+        this.note_deleted(id);
+    }
+    
+    note_deleted(id: number){
+        if(!this.online())this._del_fail(id);
+        else{
+            let _self = this;
+            axios.post(APIURL+"/ent/delete?id="+id,{}, {withCredentials:true})
+            .then(()=>_self._del_then(id))
+            .catch(()=>_self._del_fail(id));
+        }
+    }
+
+    _del_then(id: number){
+        console.log("Delete success");
+        this.local_delwid(id);
+        unsync_delete = Math.max(0,unsync_delete-1);
+        if(this.syncing())this.upd_sync();
+    }
+
+    _del_fail(id: number){
+        console.log("Delete failed");
+        if(this.syncing())this.upd_sync();
+        else{
+            this.local_delwid(id);
+            local_updates.push({action:ActionT.DELETE,note: undefined, id: id});
+            this.local_updates_save();
+        }
+    }
+    
+    // get one
+
+    get_one(id: number, cb: (arg0: Note|null) => void){
+        if(notes.length > 0) this._get_one_offline(id,true,cb);
+        else this._get_one_online(id,cb);
+    }
+
+    _get_one_offline(id: number, tryonl: boolean, cb: (arg0: Note|null) => void){
+        for(var note of notes){
+            if(note.id == id){
+                cb(note as Note);
                 return;
             }
         }
-        if(this.syncing()) this.upd_sync();
-        else local_updates.push({action: ActionT.UPDATE, note: note , id: note.id!});
+        if(tryonl)this._get_one_online(id,cb);
+        else cb(null);
     }
-    
+
+    _get_one_online(id: number, cb: (arg0: Note|null) => void){
+        let _self = this;
+        axios.get(APIURL+"/ent/get/"+id, {withCredentials:true})
+            .then((rsp: AxiosResponse)=>{
+                cb(rsp.data as Note)
+            })
+            .catch((err: AxiosError) => {
+                _self._get_one_offline(id,false,cb);
+            })
+    }
+
     //
 
     next_server_page(): number{
-        return (notes.length-unsync_create)/PAGE_SIZE + 1;
+        return Math.ceil((notes.length-unsync_create+unsync_delete)/PAGE_SIZE) + 1;
     }
 
     //

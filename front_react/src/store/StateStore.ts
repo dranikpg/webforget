@@ -74,6 +74,7 @@ class StateStore extends EventEmitter{
 
     sync_update(){
         sync--;
+        console.log("SYNC--");
         if(sync == 0){
             this.sync_end();
         }
@@ -97,7 +98,7 @@ class StateStore extends EventEmitter{
     //
 
     syncing(): boolean{
-        return sync != 0;
+        return sync > 0;
     }
 
     online() : boolean{

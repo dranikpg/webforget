@@ -3,6 +3,8 @@ import React from 'react';
 import {Chip, Paper, Grid, Card, CardHeader, Button, CardActions, CardContent, Typography, CardActionArea } from "@material-ui/core";
 import moment from 'moment';
 
+import { Link } from 'react-router-dom';
+
 const rootStyle = {
     marginBottom: '40px',
 };
@@ -26,22 +28,28 @@ class NoteEntry extends React.Component{
     }
     render(){
         let e = this.props.e;
+        let llink = e.link;
         return (
             <Card style={rootStyle}>
                 <CardActionArea>
                     <CardHeader
                         title={this.getTitle(e)}
                         subheader={this.getDate(e.date)}
+                        onClick={()=>{
+                            window.open(llink);
+                        }}
                     />   
                 </CardActionArea>
                 <CardContent>
+                    {e.id}
                     <Typography variant="body1"
                         style={descStyle}>
                         {e.descr}   
                     </Typography>
                     <Grid container spacing={3}>
                         <Grid item>
-                        <Button variant="outlined">
+                        <Button variant="outlined"
+                            component={Link} to={"/edit/"+e.id}>
                             EDIT
                         </Button>
                         </Grid>
