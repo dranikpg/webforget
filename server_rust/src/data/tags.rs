@@ -41,6 +41,11 @@ pub fn remove_all(conn: &RConn, note_id: i32){
             .execute(conn);
 }
 
+pub fn remove_all_safe(conn: &RConn, note_id: i32, user_id: i32) -> Result<(),diesel::result::Error>{
+    diesel::delete(tagmap::table).filter(tagmap::note_id.eq(note_id))
+            .execute(conn).map(|x|())
+}
+
 pub fn add_missing(conn: &RConn, user_id: i32, note_id: i32, tags: &Vec<String>){
     for tag in tags{
         let tag_id_o = tags::table.filter(tags::name.eq(tag)).get_result::<Tag>(conn).ok();
@@ -63,18 +68,18 @@ pub fn add_missing(conn: &RConn, user_id: i32, note_id: i32, tags: &Vec<String>)
 }*/
 
 pub fn get(conn: &RConn, note_id: i32) -> Option<Vec<String>>{
-    let tags_o: Option<Vec<Tagmap>> = tagmap::table.filter(tagmap::note_id.eq(note_id))
-        .load(conn).ok();
-    if tags_o.is_none(){
+
+    let tags_r = tagmap::table.filter(tagmap::note_id.eq(note_id)).inner_join(tags::table);
+    let tags_res: Option<Vec<(Tagmap,Tag)>> = tags_r.load(conn).ok();
+    println!("{:?}{:?}",tags_r,tags_res);
+
+    if tags_res.is_none(){
         return None;
     }
-    let tags = tags_o.unwrap();
+    let tags = tags_res.unwrap();
     let mut out: Vec<String> = Vec::with_capacity(tags.len());
     for tag in tags{
-        let name = tags::table.find(tag.tag_id).get_result::<Tag>(conn).ok();
-        if name.is_some(){
-            out.push(name.unwrap().name);
-        }
+        out.push(tag.1.name);
     }
     Some(out)
 }

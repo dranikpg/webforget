@@ -5,6 +5,8 @@ use diesel::prelude::*;
 use super::models::{Note, NewNote, UpdateNote};
 use super::schema::notes;
 
+use super::tags;
+
 use super::check_affected;
 use super::pagination::*;
 
@@ -65,8 +67,10 @@ pub fn update_safe(conn: &RConn, id: i32, user_id: i32, note: UpdateNote) -> boo
 }*/
 
 pub fn delete_safe(conn: &RConn, id: i32, user_id: i32) -> bool{
+    tags::remove_all_safe(conn, id, user_id);
     let r =  diesel::delete(notes::table)
             .filter(notes::id.eq(id))
             .filter(notes::user_id.eq(user_id)).execute(conn);
+    println!("{:?}", r);
     super::check_affected(r)
 }
