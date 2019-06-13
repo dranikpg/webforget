@@ -1,5 +1,8 @@
 import React from 'react';
-import { Box, Chip, Paper, TextField, Grid, Button, Typography } from '@material-ui/core';
+import { Box, Chip, Paper, TextField, Grid, Button, Typography, Popper, Tab, List, ListItem, ListItemText} from '@material-ui/core';
+import { dp_tags_search } from '../../actions/func';
+import TagStore from '../../store/TagStore';
+
 
 const paperStyle = {
     padding: 10
@@ -15,9 +18,26 @@ const chiprootStyle = {
 class TagEdit extends React.Component{
     constructor(props){
         super(props);
-        this.state = {items:props.val, txt: ""};
+        this.state = {
+            items:props.val, 
+            txt: "",
+            sugg:[],
+            anchor:undefined
+        };
+    }
+    componentDidMount(){
+        this.lst = ()=>{
+            this.setState({
+                ...this.state,
+                sugg: TagStore.get(),
+            });
+        }
+        TagStore.c_sugg(this.lst);
     }
 
+    componentWillUnmount(){
+        TagStore.c_rm_sugg(this.lst);
+    }
 
     remove_tag(tag){
         console.log(tag);
@@ -40,7 +60,12 @@ class TagEdit extends React.Component{
     }
 
     upd_text(ev){
-        this.setState({...this.state,txt: ev.target.value});
+        dp_tags_search(ev.target.value);
+        this.setState({
+            ...this.state,
+            txt: ev.target.value,
+            anchor:ev.target
+        });
     }
 
     add_tag(){
@@ -51,7 +76,16 @@ class TagEdit extends React.Component{
             this.state.items.sort();
             this.notify_cb();
         }
-        this.setState({...this.state,txt:""});
+        this.setState({...this.state,txt:"", sugg:[]});
+    }
+
+    add_auto(txt){
+        if(!this.state.items.includes(txt)){
+            this.state.items.push(txt);
+            this.state.items.sort();
+            this.notify_cb();
+        }
+        this.setState({...this.state,txt:"", sugg:[]});
     }
 
     notify_cb(){
@@ -59,6 +93,17 @@ class TagEdit extends React.Component{
     }
 
     render() {
+        let sugg = [];
+        let rsugg = this.state.sugg;
+        for(var sg of rsugg){
+            sugg.push(
+                <ListItem button onClick={()=>{
+                    this.add_auto(sg);
+                }}>
+                    <ListItemText primary={sg}/>
+                </ListItem>);
+        }
+
         return (
             <Paper style={paperStyle}>
                 <Typography variant="caption">
@@ -72,6 +117,7 @@ class TagEdit extends React.Component{
                     justify="space-between"
                     alignItems="baseline">
                     <TextField
+                        autoComplete="off"
                         margin="normal"
                         label="Add tag"
                         id="add-tag"
@@ -79,6 +125,16 @@ class TagEdit extends React.Component{
                         onKeyPress={this.field_catch.bind(this)}
                         onChange={this.upd_text.bind(this)}
                     /> 
+                   <Popper open={this.state.anchor != undefined} 
+                            anchorEl={this.state.anchor}
+                            placement="bottom-start">
+                        <Paper>
+                            <List dense>
+                                {sugg}
+                            </List>
+                        </Paper>
+                    </Popper>
+
                     <Button variant="outlined" size="small"
                         onClick={this.add_tag.bind(this)}>Add</Button>
                 </Grid>

@@ -15,5 +15,6 @@ export default{
     SEARCH_EXTEND: ct++,
     QUERY: ct++,
     QUERY_MORE: ct++,
-    NOTES_DROP_LOCAL: ct++
+    NOTES_DROP_LOCAL: ct++,
+    TAGS_PREFIXS:ct++,
 }

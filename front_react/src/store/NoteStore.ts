@@ -22,11 +22,16 @@ interface Update{
 }
 
 let notes : Array<Note> = new Array<Note>(); //notes
-let server_nc: number|undefined = undefined;                   //notes on server
-let queried: boolean = false;               //queried
-let unsync_create: number = 0;
-let unsync_delete: number = 0;
 let local_updates = new Array<Update>();    //updates to try next time
+let note_ids = new Set<number>();
+
+let hasm : boolean|undefined = undefined;
+let curp = 1;
+
+let queried: boolean = false;  
+
+let del_since_rq = 0;
+let newid_map: number[] = [];
 
 const LISTC: string = 'LC';
 
@@ -39,9 +44,21 @@ class NoteStore extends EventEmitter{
 
     _action(a :FAction){
         if(a.actionType == AT.NOTES_EXTEND) this.load_more();
+        else if(a.actionType == AT.FULL_INIT_REQUEST)this.full_init();
         else if(a.actionType == AT.SYNC_END)this.end_sync();
         else if(a.actionType == AT.SYNC_AFTERBURN) this.afterburn_sync();
         else if(a.actionType == AT.NOTES_DROP_LOCAL) this.local_drop();
+    }
+
+    //
+
+    full_init(){
+        if(this.online())return;
+        let ld = localStorage.getItem("notes");
+        if(ld != null){
+            notes = JSON.parse(ld!);
+            this.emit(LISTC);
+        }
     }
 
 
@@ -127,6 +144,11 @@ class NoteStore extends EventEmitter{
 
     // LOAD
 
+    save_notes(){
+        let notesp = notes.slice(Math.min(PAGE_SIZE*3,notes.length));
+        localStorage.setItem("notes", JSON.stringify(notesp));
+    }
+
     load_first(): boolean{
         if(!this.online()|| this.syncing())return false;
         console.log("first query");
@@ -138,7 +160,21 @@ class NoteStore extends EventEmitter{
         return true;
     }
 
-    _recv_first(resp : AxiosResponse){
+    _recv_first(resp: AxiosResponse){
+        let nts = resp.data;
+        for (var ntkey in nts){
+            let note = nts[ntkey];
+
+            if(note_ids.has(note.id))continue;
+            note_ids.add(note.id);
+            
+            notes.unshift(note);
+        }
+        this.save_notes();
+        this.emit(LISTC);
+    }
+
+    /*_recv_first(resp : AxiosResponse){
         console.log(resp);
         server_nc = resp.data[1];
         let nts = resp.data[0];
@@ -162,9 +198,10 @@ class NoteStore extends EventEmitter{
             note.synced = true;
             notes.unshift(note);
         }
-        
+
+        this.save_notes();
         this.emit(LISTC);
-    }
+    }*/
 
     _recv_first_fail(err: AxiosError){
 
@@ -182,20 +219,32 @@ class NoteStore extends EventEmitter{
     }
 
     _recv_more(resp: AxiosResponse){
-        server_nc = resp.data[1];
-        let nts = resp.data[0];
+        let nts = resp.data;
+        if(nts.length == 0){
+            console.log("return 0, no more notes");
+            hasm = false;
+            queried = false;
+            this.emit(LISTC);
+        }else hasm = true;
         for (var ntkey in nts){
             let note = nts[ntkey];
-            note.synced = true;
+
+            if(note_ids.has(note.id))continue;
+            note_ids.add(note.id);
+            
             notes.push(note);
         }
         queried = false;
+        this.save_notes();
         this.emit(LISTC);
     }
 
     _recv_fail(err: AxiosError){
         queried = false;
     }
+
+    //
+
 
     // CRATE
 
@@ -217,9 +266,6 @@ class NoteStore extends EventEmitter{
         note.id = this.unsync_cid();
         localStorage.setItem("unsync_cid", ""+note.id);
         notes.unshift(note);
-        note.sync = false;
-        unsync_create++;
-        console.log("instant create:",note.id, unsync_create);
         this.note_created(note);
     }
 
@@ -235,26 +281,17 @@ class NoteStore extends EventEmitter{
 
     _create_then(note: Note, newid: number){
         console.log("create success:",note, newid);
-        
-        for(var i = 0; i < notes.length; i++){
-            if(notes[i].id == note.id){
-                console.log("marked node as sync");
-                notes[i].sync = true;
-                break;
-            }
-        }
          //delete pending update
         this.local_delwid(note.id);
 
+        newid_map[note.id] = newid;
         note.id = newid;
-        unsync_create = Math.max(unsync_create-1,0);
     
         if(this.syncing()) this.upd_sync();
     }
 
     _create_fail(note: Note){
         console.log("create fail:",note);
-        unsync_create++;
         if(!this.syncing()){
             local_updates.push({action: ActionT.CREATE, note: note , id: note.id!});
             this.local_updates_save();
@@ -265,7 +302,6 @@ class NoteStore extends EventEmitter{
     // UPDATE
 
     note_update_instant(note: Note){
-        note.sync = false;
         this.note_updated(note);
     }
 
@@ -291,7 +327,6 @@ class NoteStore extends EventEmitter{
         //find node and mark as sync
         for(var i = 0; i < notes.length; i++){
             if(notes[i].id == note.id){
-                notes[i].sync = true;
                 break;
             }
         }
@@ -323,13 +358,13 @@ class NoteStore extends EventEmitter{
     //DELETE
 
     note_delete_instant(id: number){
+        del_since_rq++;
         for(var i = 0; i < notes.length; i++){
             if(notes[i].id == id){
                 notes.splice(i,1);
                 break;
             }
         }
-        unsync_delete++;
         this.note_deleted(id);
     }
     
@@ -346,7 +381,6 @@ class NoteStore extends EventEmitter{
     _del_then(id: number){
         console.log("Delete success");
         this.local_delwid(id);
-        unsync_delete = Math.max(0,unsync_delete-1);
         if(this.syncing())this.upd_sync();
     }
 
@@ -363,6 +397,8 @@ class NoteStore extends EventEmitter{
     // get one
 
     get_one(id: number, cb: (arg0: Note|null) => void){
+        if(id < 0) id = newid_map[id];
+        if(id == null)cb(null);
         if(notes.length > 0) this._get_one_offline(id,true,cb);
         else this._get_one_online(id,cb);
     }
@@ -392,13 +428,19 @@ class NoteStore extends EventEmitter{
     //
 
     next_server_page(): number{
-        return Math.ceil((notes.length-unsync_create+unsync_delete)/PAGE_SIZE) + 1;
+        if(del_since_rq == 0)return curp++;
+        else{
+            let val = curp - Math.ceil(del_since_rq/PAGE_SIZE);
+            del_since_rq = 0;
+            curp++;
+            return Math.max(1,val);
+        }
     }
 
     //
 
-    server_count(){
-        return server_nc;
+    any_sent(){
+        return hasm != undefined;
     }
     
     notes(): Array<Note>{
@@ -406,9 +448,9 @@ class NoteStore extends EventEmitter{
     }
 
     has_more(): boolean{
-        if(this.online() && server_nc == undefined)return true;
+        if(this.online() && hasm == undefined)return true;
         if(!this.online())return false;
-        return (notes.length-unsync_create) < server_nc!;
+        return hasm!;
     }
 
     online() : boolean {

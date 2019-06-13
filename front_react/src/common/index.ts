@@ -21,7 +21,6 @@ export interface Note{
     link: string, 
     date: string,
     tags: Array<string>,
-    sync: boolean,
 }
 
 export interface NoteUpdate{

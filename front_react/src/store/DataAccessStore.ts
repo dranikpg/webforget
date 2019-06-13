@@ -49,7 +49,7 @@ class DataAccessStore extends EventEmitter{
                 dp_search_extend(s!);
             },10);
         }else{
-            if(NoteStore.server_count()==undefined) this.query_notes();
+            if(!NoteStore.any_sent()) this.query_notes();
             else this.request_notes();
         }
     }
@@ -57,7 +57,7 @@ class DataAccessStore extends EventEmitter{
     query_notes(){
         searching = false;
         //check if online and not loaded
-        if(NoteStore.server_count() == null)noansw = true; 
+        if(!NoteStore.any_sent())noansw = true; 
         this.request_notes();
         this.emit(CG);
     }

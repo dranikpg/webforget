@@ -117,3 +117,12 @@ export function dp_drop_local(){
         actionType:AT.NOTES_DROP_LOCAL
     });
 }
+
+//
+
+export function dp_tags_search(pref:string){
+    D.dispatch({
+        actionType: AT.TAGS_PREFIXS,
+        payload:{pref:pref}
+    });
+}
