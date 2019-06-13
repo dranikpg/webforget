@@ -31,6 +31,13 @@ pub fn get_by_email(conn: &RConn, email: &str) -> Option<User>{
 pub fn get(conn: &RConn, id: i32) -> Option<User>{
     users::table.find(id).get_result::<User>(conn).ok()
 }
+pub fn has(conn: &RConn, id: i32) -> bool{
+    let r = users::table.filter(users::id.eq(id)).count().execute(conn);
+    match r{
+        Ok(c) => return c  > 0,
+        Err(e) => return false
+    };
+}
 pub fn login(conn: &RConn, email: &str, pw: &str) -> Option<User>{
     let us = get_by_email(conn, email);
     match us{

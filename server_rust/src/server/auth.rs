@@ -26,7 +26,7 @@ pub struct UserDto{
     email: String
 }
 // mature struct
-pub struct User{ //TODO only userid struct ?
+pub struct User{
     pub id: i32,
     pub nick: String,
     pub email: String
@@ -58,6 +58,26 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
         }
     }
 }
+pub struct UserID{
+    pub id: i32
+}
+impl<'a, 'r> FromRequest<'a, 'r> for UserID {
+    type Error = ();
+    fn from_request(request: &'a Request<'r>) -> request::Outcome<UserID, ()> {
+        let conn = request.guard::<Conn>()?;
+        let rid = request.cookies()
+            .get/*_private*/("user_id")
+            .and_then(|cookie| cookie.value().parse().ok());
+        if rid.is_none(){
+            return Outcome::Forward(())
+        }
+        let id = rid.unwrap();
+        if auth::has(&conn, id){ 
+            return Outcome::Success(UserID{id});
+        }else {return Outcome::Forward(());}
+    }
+}
+
 // utils
 fn start_session(ck: &mut Cookies, userid: i32) {
     ck.add(Cookie::build("user_id", userid.to_string())
@@ -130,7 +150,7 @@ pub fn r_login(mut ck: Cookies, conn: Conn, user: Json<UserLDto>) -> Result<User
     }
 }
 #[get("/auth/logout")]
-pub fn r_logout(user: User, mut ck: Cookies){
+pub fn r_logout(user: UserID, mut ck: Cookies){
     end_session(&mut ck, user.id);
 }
 #[get("/auth/auto", rank = 1)]

@@ -57,7 +57,7 @@ fn main() {
                 
                 server::tags::r_get_user,
                 server::tags::r_get_user_simple,
-
+		server::tags::r_get_user_alike
                 /*cors::r_auth_create,
                 cors::r_auth_login,
                 cors::r_auth_auto,

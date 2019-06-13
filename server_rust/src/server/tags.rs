@@ -4,19 +4,27 @@ use rocket_contrib::json::Json;
 
 use crate::data::{notes,tags};
 
-use super::auth::User;
-use crate::data::models::User as MUser;
+use super::auth::UserID;
 use crate::data::models::{Note,NewNote, UpdateNote};
 use crate::server::data::Conn;
 
+use rocket::http::RawStr;
+
+type JVEC<T> = Option<Json<Vec<T>>>;
+
 #[get("/tg/all")]
-pub fn r_get_user(conn: Conn, user: User) -> Option<Json<Vec<(String,i64)>>>{
+pub fn r_get_user(conn: Conn, user: UserID) -> JVEC<(String,i64)>{
     tags::get_user_wcount(&conn, user.id).map(|x|Json(x))
 }
 
 #[get("/tg/list")]
-pub fn r_get_user_simple(conn: Conn, user: User) -> Option<Json<Vec<String>>>{
+pub fn r_get_user_simple(conn: Conn, user: UserID) -> JVEC<String>{
     tags::get_user(&conn, user.id).map(|x|Json(x))
+}
+
+#[get("/tg/alike?<search>")]
+pub fn r_get_user_alike(conn: Conn, user: UserID, search: &RawStr) -> JVEC<String>{
+    tags::get_user_alike(&conn, user.id, search).map(|x|Json(x))
 }
 
 /*Rename?

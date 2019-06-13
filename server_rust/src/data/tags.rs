@@ -68,11 +68,8 @@ pub fn add_missing(conn: &RConn, user_id: i32, note_id: i32, tags: &Vec<String>)
 }*/
 
 pub fn get(conn: &RConn, note_id: i32) -> Option<Vec<String>>{
-
     let tags_r = tagmap::table.filter(tagmap::note_id.eq(note_id)).inner_join(tags::table);
     let tags_res: Option<Vec<(Tagmap,Tag)>> = tags_r.load(conn).ok();
-    println!("{:?}{:?}",tags_r,tags_res);
-
     if tags_res.is_none(){
         return None;
     }
@@ -83,6 +80,8 @@ pub fn get(conn: &RConn, note_id: i32) -> Option<Vec<String>>{
     }
     Some(out)
 }
+
+//
 
 pub fn get_user(conn: &RConn, user_id: i32) -> Option<Vec<String>>{
     let tags: Option<Vec<Tag>> = tags::table.filter(tags::user_id.eq(user_id))
@@ -102,4 +101,11 @@ pub fn get_user_wcount(conn: &RConn, user_id: i32) -> Option<Vec<(String,i64)>>{
     tags.map(|mut ts| ts.iter_mut().map(|t|
         (t.name.clone(), get_c(conn, t.id))
     ).collect())
+}
+
+pub fn get_user_alike(conn: &RConn, user_id: i32, pref: &str) -> Option<Vec<String>>{
+    let tags: Option<Vec<Tag>> = tags::table.filter(tags::user_id.eq(user_id))
+	.filter(tags::name.like(format!("{}%",pref)))
+        .load(conn).ok();
+    tags.map(|mut ts| ts.iter_mut().map(|t|t.name.clone()).collect())
 }

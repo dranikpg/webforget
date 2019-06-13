@@ -4,8 +4,7 @@ use rocket_contrib::json::Json;
 
 use crate::data::{notes,tags};
 
-use super::auth::User;
-use crate::data::models::User as MUser;
+use super::auth::UserID;
 use crate::data::models::{Note,NewNote, UpdateNote};
 use crate::server::data::Conn;
 
@@ -88,13 +87,13 @@ impl<'a> NoteNewDto<'a>{
 type NoteUpdateDto<'a> = UpdateNote<'a>;
 //routes
 #[get("/ent/get?<page>&<ps>")]
-pub fn r_get_all(conn: Conn, user: User, page:i64, ps: i64) 
-                        -> Option<Json<(Vec<NoteDto>,i64)>>{
+pub fn r_get_all(conn: Conn, user: UserID, page:i64, ps: i64) 
+                        -> Option<Json<Vec<NoteDto>>>{
     let notes_o = notes::get_user_pg(&conn, user.id, page, ps);
     if notes_o.is_none(){
         return None;
     }
-    let (notes,pc) = notes_o.unwrap();
+    let notes = notes_o.unwrap();
     let mut out: Vec<NoteDto> = Vec::with_capacity(notes.len());
     for note in &notes{
         let mut dto = NoteDto::from_note_copy(note);
@@ -102,10 +101,10 @@ pub fn r_get_all(conn: Conn, user: User, page:i64, ps: i64)
         out.push(dto);
     }
 
-    Some(Json((out,pc)))
+    Some(Json(out))
 }
 #[get("/ent/get/<id>")]
-pub fn r_get(conn: Conn, id: i32, user: User) -> Option<Json<NoteDto>>{
+pub fn r_get(conn: Conn, id: i32, user: UserID) -> Option<Json<NoteDto>>{
     notes::get(&conn, id, user.id).map(|n| {
         let mut dto = NoteDto::from_note(n);
         dto.with_tags_o(tags::get(&conn,dto.id));
@@ -113,7 +112,7 @@ pub fn r_get(conn: Conn, id: i32, user: User) -> Option<Json<NoteDto>>{
     })
 }
 #[post("/ent/create",format = "application/json", data = "<note>")]
-pub fn r_create(conn: Conn, user: User, note: Json<NoteNewDto>) -> Option<Json<NoteDto>>{
+pub fn r_create(conn: Conn, user: UserID, note: Json<NoteNewDto>) -> Option<Json<NoteDto>>{
     info!("{:?}",note);
     let res = match notes::create(&conn, note.to_new(user.id)){
         Some(n) => n,
@@ -126,7 +125,7 @@ pub fn r_create(conn: Conn, user: User, note: Json<NoteNewDto>) -> Option<Json<N
     Some(Json(dto))
 }
 #[post("/ent/update/<id>", format = "application/json", data = "<note>")]
-pub fn r_update(conn: Conn, user: User, id: i32, note: Json<NoteUpdateDto>) -> Status{
+pub fn r_update(conn: Conn, user: UserID, id: i32, note: Json<NoteUpdateDto>) -> Status{
     info!("{:?}", note);
     match notes::update_safe(&conn, id, user.id, note.0){
         true => super::SUCCESS(),
@@ -134,7 +133,7 @@ pub fn r_update(conn: Conn, user: User, id: i32, note: Json<NoteUpdateDto>) -> S
     }
 }
 #[post("/ent/update_tags/<id>", format = "application/json", data = "<ts>")]
-pub fn r_update_tags(conn: Conn, user: User, id: i32, ts: Json<Vec<String>>) -> Status{
+pub fn r_update_tags(conn: Conn, user: UserID, id: i32, ts: Json<Vec<String>>) -> Status{
     info!("{:?}", ts);
     let note_o = notes::get(&conn, id, user.id);
     if note_o.is_none(){
@@ -147,9 +146,13 @@ pub fn r_update_tags(conn: Conn, user: User, id: i32, ts: Json<Vec<String>>) -> 
     super::SUCCESS()
 }
 #[post("/ent/delete?<id>")]
-pub fn r_delete(conn: Conn, user: User, id: i32) -> Status{
+pub fn r_delete(conn: Conn, user: UserID, id: i32) -> Status{
     match notes::delete_safe(&conn, id, user.id){
         true => super::SUCCESS(), 
         false => super::FORBIDDEN()
     }
 }
+/*#[post("/ent/search?<page>&<ps>", format = "application/json", data = "<ts>")]
+pub fn r_search(){
+
+}*/
