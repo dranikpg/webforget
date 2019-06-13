@@ -3,7 +3,7 @@
 extern crate rocket;
 extern crate rocket_contrib;
 extern crate rocket_codegen;
-use rocket_cors;
+extern crate rocket_cors;
 
 #[macro_use]
 extern crate diesel;
@@ -23,15 +23,15 @@ extern crate chrono;
 mod data;
 mod server;
 
-use server::data::*;
-use server::cors;
+
+use crate::server::cors;
 
 //
 
-use rocket::{Request, Response};
-use rocket::fairing::{Fairing, Info, Kind};
-use rocket::http::{Header, ContentType, Method};
-use std::io::Cursor;
+
+
+
+
 
 
 fn main() {

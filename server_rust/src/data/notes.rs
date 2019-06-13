@@ -7,7 +7,7 @@ use super::schema::notes;
 
 use super::tags;
 
-use super::check_affected;
+
 use super::pagination::*;
 
 /*pub fn get(conn: &RConn, id: i32) -> Option<Note>{

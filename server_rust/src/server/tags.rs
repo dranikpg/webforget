@@ -1,11 +1,11 @@
-use rocket::request;
-use rocket::http::Status;
+
+
 use rocket_contrib::json::Json;
 
-use crate::data::{notes,tags};
+use crate::data::{tags};
 
 use super::auth::UserID;
-use crate::data::models::{Note,NewNote, UpdateNote};
+
 use crate::server::data::Conn;
 
 use rocket::http::RawStr;

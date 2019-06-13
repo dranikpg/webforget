@@ -36,7 +36,7 @@ impl<T> Paginated<T> {
     where
         Self: LoadQuery<MysqlConnection, U>,
     {
-        let per_page = self.per_page;
+        let _per_page = self.per_page;
         let results = self.load::<U>(conn)?;
         let records = results.into_iter().collect();
         Ok(records)

@@ -2,10 +2,10 @@ use super::RConn;
 
 use diesel;
 use diesel::prelude::*;
-use super::models::{Tag,TagID, NewTag, Tagmap, TagmapInsert};
+use super::models::{Tag, NewTag, Tagmap, TagmapInsert};
 use super::schema::{tags,tagmap} ;
 
-use super::check_affected;
+
 
 //better and faster version?
 /*pub fn create_missing(conn: &RConn, user_id: i32, tags: &Vec<String>){
@@ -41,12 +41,12 @@ pub fn remove_all(conn: &RConn, note_id: i32){
             .execute(conn);
 }
 
-pub fn remove_all_safe(conn: &RConn, note_id: i32, user_id: i32) -> Result<(),diesel::result::Error>{
+pub fn remove_all_safe(conn: &RConn, note_id: i32, _user_id: i32) -> Result<(),diesel::result::Error>{
     diesel::delete(tagmap::table).filter(tagmap::note_id.eq(note_id))
-            .execute(conn).map(|x|())
+            .execute(conn).map(|_x|())
 }
 
-pub fn add_missing(conn: &RConn, user_id: i32, note_id: i32, tags: &Vec<String>){
+pub fn add_missing(conn: &RConn, _user_id: i32, note_id: i32, tags: &Vec<String>){
     for tag in tags{
         let tag_id_o = tags::table.filter(tags::name.eq(tag)).get_result::<Tag>(conn).ok();
         if tag_id_o.is_none(){

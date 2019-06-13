@@ -1,9 +1,9 @@
-use std::io::Cursor;
+
 
 use rocket::http::Method;
-use rocket::Response;
+
 use rocket::{get, options, routes};
-use rocket_cors::{Cors,AllowedHeaders, AllowedOrigins, Error, Guard, Responder};
+use rocket_cors::{Cors,AllowedHeaders, AllowedOrigins, Guard, Responder};
 
 
 pub fn init() -> Cors{

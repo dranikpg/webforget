@@ -35,7 +35,7 @@ pub fn has(conn: &RConn, id: i32) -> bool{
     let r = users::table.filter(users::id.eq(id)).count().execute(conn);
     match r{
         Ok(c) => return c  > 0,
-        Err(e) => return false
+        Err(_e) => return false
     };
 }
 pub fn login(conn: &RConn, email: &str, pw: &str) -> Option<User>{

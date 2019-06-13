@@ -85,7 +85,7 @@ fn start_session(ck: &mut Cookies, userid: i32) {
         //  .secure(true)  
             .finish());
 }
-fn end_session(ck: &mut Cookies, userid: i32){
+fn end_session(ck: &mut Cookies, _userid: i32){
     ck.remove/*_private*/(Cookie::named("user_id"));
 }
 // route utils
