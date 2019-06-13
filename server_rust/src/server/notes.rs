@@ -5,7 +5,7 @@ use rocket_contrib::json::Json;
 use crate::data::{notes,tags};
 
 use super::auth::UserID;
-use crate::data::models::{Note,NewNote, UpdateNote};
+use crate::data::models::{Note,NoteWT,NewNote, UpdateNote};
 use crate::server::data::Conn;
 
 const FORMAT: &'static str = "%Y-%m-%d";
@@ -21,35 +21,16 @@ pub struct NoteDto{
     tags: Vec<String>,
 }
 impl NoteDto{
-    pub fn from_note(note: Note) -> NoteDto{
+    pub fn from_notewt(note: NoteWT) -> Self{
+        let tags: Vec<String> = note.tagarr.split_ascii_whitespace().map(|x| String::from(x)).collect();
         NoteDto{
             id: note.id,
-            title: note.title,
+            title:note.title,
             descr: note.descr,
             link: note.link,
             date: note.cdate.format(FORMAT).to_string(),
-            tags: Vec::new()
+            tags
         }
-    }
-    pub fn from_note_copy(note: &Note) -> NoteDto{
-        NoteDto{
-            id: note.id,
-            title: note.title.clone(),
-            descr: note.descr.clone(),
-            link: note.link.clone(), 
-            date: note.cdate.format(FORMAT).to_string(),
-            tags: Vec::new()
-        }
-    }
-    pub fn with_tags(&mut self, ts: Vec<String>) -> &NoteDto{
-        self.tags =  ts;
-        self
-    }
-    pub fn with_tags_o(&mut self, ts: Option<Vec<String>>) -> &NoteDto{
-        if ts.is_some(){
-            self.tags = ts.unwrap();
-        }
-        self
     }
 }
 //struct for receiving data
@@ -93,36 +74,21 @@ pub fn r_get_all(conn: Conn, user: UserID, page:i64, ps: i64)
     if notes_o.is_none(){
         return None;
     }
-    let notes = notes_o.unwrap();
-    let mut out: Vec<NoteDto> = Vec::with_capacity(notes.len());
-    for note in &notes{
-        let mut dto = NoteDto::from_note_copy(note);
-        dto.with_tags_o(tags::get(&conn, dto.id));
-        out.push(dto);
-    }
-
+    let mut notes = notes_o.unwrap();
+    let mut out =  with_tags(conn,notes);
     Some(Json(out))
 }
 #[get("/ent/get/<id>")]
 pub fn r_get(conn: Conn, id: i32, user: UserID) -> Option<Json<NoteDto>>{
-    notes::get(&conn, id, user.id).map(|n| {
-        let mut dto = NoteDto::from_note(n);
-        dto.with_tags_o(tags::get(&conn,dto.id));
-        Json(dto)
-    })
+    notes::get(&conn, id, user.id).map(|n| Json(NoteDto::from_notewt(n)))
 }
 #[post("/ent/create",format = "application/json", data = "<note>")]
-pub fn r_create(conn: Conn, user: UserID, note: Json<NoteNewDto>) -> Option<Json<NoteDto>>{
+pub fn r_create(conn: Conn, user: UserID, note: Json<NoteNewDto>) -> Option<String>{
     info!("{:?}",note);
     let res = match notes::create(&conn, note.to_new(user.id)){
-        Some(n) => n,
+        Some(id) => return Some(id.id.to_string()),
         None => return None
     };
-    tags::create_missing(&conn, user.id, &note.tags);
-    tags::add_missing(&conn, user.id, res.id, &note.tags);
-    let mut dto = NoteDto::from_note(res);
-    dto.with_tags(note.tags.clone());
-    Some(Json(dto))
 }
 #[post("/ent/update/<id>", format = "application/json", data = "<note>")]
 pub fn r_update(conn: Conn, user: UserID, id: i32, note: Json<NoteUpdateDto>) -> Status{
@@ -152,7 +118,11 @@ pub fn r_delete(conn: Conn, user: UserID, id: i32) -> Status{
         false => super::FORBIDDEN()
     }
 }
-/*#[post("/ent/search?<page>&<ps>", format = "application/json", data = "<ts>")]
-pub fn r_search(){
 
-}*/
+pub fn with_tags(conn: Conn,mut notes: Vec<NoteWT>) -> Vec<NoteDto>{
+    let mut out: Vec<NoteDto> = Vec::with_capacity(notes.len());
+    for mut note in notes{
+        out.push(NoteDto::from_notewt(note));
+    }
+    out
+}

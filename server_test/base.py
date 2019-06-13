@@ -3,7 +3,7 @@ from requests import *
 s = Session()
 url = "lol"
 
-def init(u):
+def init(u="http://localhost:8000"):
 	global url
 	url = u
 
@@ -51,7 +51,18 @@ def tags_all():
 def tags_list():
 	return s.get(url+"/tg/list")
 
+#search
+
+def search(title=None,tags=None,page=1,ps=10):
+	data = {}
+	if(title != None):
+		data["title"] = title
+	if(tags != None):
+		data["tags"] = tags
+	return s.post(url+"/search?page="+str(page)+"&ps="+str(ps),
+		json=data)
 #simple
 
 def simple_login():
 	auth_login("email1","pw1")
+

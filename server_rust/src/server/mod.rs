@@ -2,6 +2,7 @@ pub mod data;
 pub mod auth;
 pub mod notes;
 pub mod tags;
+pub mod search;
 
 pub mod cors;
 

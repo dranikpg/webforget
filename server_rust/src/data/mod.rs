@@ -10,6 +10,7 @@ use std::env;
 pub mod auth;
 pub mod notes;
 pub mod tags;
+pub mod search;
 
 pub mod schema;
 pub mod models;

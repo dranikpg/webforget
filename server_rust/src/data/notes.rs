@@ -1,55 +1,65 @@
 use super::RConn;
 
 use diesel;
+use diesel::QueryResult;
 use diesel::prelude::*;
-use super::models::{Note, NewNote, UpdateNote};
+use super::models::{ID,Note,NoteWT, NewNote, UpdateNote};
 use super::schema::notes;
 
 use super::tags;
-
-
 use super::pagination::*;
 
-/*pub fn get(conn: &RConn, id: i32) -> Option<Note>{
-    notes::table.find(id).get_result::<Note>(conn).ok()
-}*/
-
-pub fn get(conn: &RConn, id: i32, user_id: i32) -> Option<Note>{
-    notes::table.filter(notes::id.eq(id)).filter(notes::user_id.eq(user_id))
-            .get_result::<Note>(conn).ok()
+pub fn first<T>(arro: Option<Vec<T>>) -> Option<T>{
+    match arro{
+        None=> None,
+        Some(arr)=> {
+            for el in arr{
+                return Some(el);
+            }
+            return None;
+        }
+    }
 }
 
-pub fn get_all(conn: &RConn) -> Option<Vec<Note>> {
-    notes::table.load(conn).ok()
+pub fn get(conn: &RConn, id: i32, user_id: i32) -> Option<NoteWT>{
+    let qbase = format!("SELECT notes.id,notes.title,notes.descr,notes.link,notes.cdate, GROUP_CONCAT(tags.name SEPARATOR ' ') as tagarr
+                FROM notes JOIN tagmap on notes.id = tagmap.note_id JOIN tags on tagmap.tag_id = tags.id
+                WHERE notes.id = '{}' AND notes.user_id = '{}' LIMIT 1", id, user_id);
+    let q : QueryResult<Vec<NoteWT>> = diesel::sql_query(&qbase).load(conn);
+    first(q.ok())
 }
 
-pub fn get_user(conn: &RConn, user_id: i32) -> Option<Vec<Note>>{
-    notes::table.filter(notes::user_id.eq(user_id)).load(conn).ok()
-}
-
-pub fn get_user_pg(conn: &RConn, user_id: i32,page: i64, pagesize: i64) -> Option<Vec<Note>>{
+/*pub fn get_user_pg_2(conn: &RConn, user_id: i32,page: i64, pagesize: i64) -> Option<Vec<Note>>{
     let qbase = notes::table.filter(notes::user_id.eq(user_id)).order(notes::id.desc());
     let q: QueryResult<Vec<Note>> = qbase.paginate(page).per_page(pagesize).load_pp(conn);
     q.ok()
+}*/
+
+pub fn get_user_pg(conn: &RConn, user_id: i32, page: i64, pagesize: i64) -> Option<Vec<NoteWT>>{
+    let offset = (page - 1) * pagesize;
+    let qbase = format!("SELECT notes.id,notes.title,notes.descr,notes.link,notes.cdate, GROUP_CONCAT(tags.name SEPARATOR ' ') as tagarr
+        FROM notes JOIN tagmap on notes.id = tagmap.note_id JOIN tags on tagmap.tag_id = tags.id 
+        WHERE notes.user_id = '{}' GROUP BY notes.id LIMIT {},{};",user_id, offset, pagesize);
+    let q : QueryResult<Vec<NoteWT>> = diesel::sql_query(&qbase).load(conn);
+    q.ok()
 }
 
-pub fn create(conn: &RConn, note: NewNote) -> Option<Note>{
+pub fn create(conn: &RConn, note: NewNote) -> Option<ID>{
     let user_id = note.user_id;
     let irs = diesel::insert_into(notes::table)
         .values(note).execute(conn);
     if irs.is_err(){
         return None;
     }
-    let us = notes::table.filter(notes::user_id.eq(user_id))
-        .order(notes::id.desc()).first(conn);
-    return us.ok();
+    let q = diesel::sql_query(&format!("SELECT notes.id from notes WHERE notes.user_id = '{}' ORDER BY notes.id LIMIT 1;",user_id)).load(conn);
+    first(q.ok())
 }
 
 pub fn update_safe(conn: &RConn, id: i32, user_id: i32, note: UpdateNote) -> bool {
     let target = notes::table.filter(notes::id.eq(id)).filter(notes::user_id.eq(user_id));
     let r = diesel::update(target)
         .set(note).execute(conn);
-    super::check_affected(r)
+    r.is_ok()
 }
 
 /*pub fn delete(conn: &RConn, id: i32) -> bool{

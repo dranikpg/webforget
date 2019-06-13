@@ -1,5 +1,17 @@
 //USER
 use super::schema::users;
+use diesel::sql_types::{Integer,Text,VarChar,Date};
+
+//
+
+#[derive(Debug, QueryableByName)]
+pub struct ID{
+    #[sql_type = "Integer"]
+    pub id: i32
+}
+
+//
+
 #[derive(Debug, Identifiable, Queryable)]
 pub struct User{
     pub id: i32,
@@ -16,8 +28,9 @@ pub struct NewUser<'a> {
 }
 //Entry
 use super::schema::notes;
-#[derive(Debug, Identifiable, Queryable)]
+#[derive(Debug, Identifiable, Queryable,QueryableByName)]
 //#[derive(Serialize, Deserialize)]
+#[table_name="notes"]
 pub struct Note{
     pub id: i32,
     pub user_id: i32,
@@ -26,6 +39,23 @@ pub struct Note{
     pub link: String,
     pub cdate: chrono::NaiveDate  //string for parsing
 }
+#[derive(Debug, QueryableByName)]
+//note with tags array
+pub struct NoteWT{
+    #[sql_type = "Integer"]
+    pub id: i32,
+    #[sql_type = "VarChar"]
+    pub title: String,
+    #[sql_type = "Text"]
+    pub descr: String,
+    #[sql_type = "VarChar"]
+    pub link: String,
+    #[sql_type = "Date"]
+    pub cdate: chrono::NaiveDate,
+    #[sql_type = "VarChar"]
+    pub tagarr: String
+}
+
 #[derive(Insertable)]
 #[table_name="notes"]
 pub struct NewNote<'a>{
