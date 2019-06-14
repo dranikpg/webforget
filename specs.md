@@ -1,38 +1,29 @@
-### Schema
-##### Mysql
-users: VARCHAR nick, VARCHAR pw, VARCHAR email
 
-notes: VARCHAR title, VARCHAR link, VARCHAR desc
+## SERVER
 
-tags: VARCHAR title, user_id, 
+NoteDTO = {id, title, descr, link, tags: string[], date:"YYYY-MM-DD"}
+NoteCreateDTO = {title,descr,link,tags,date? DEFAULT CURDAY}
+NoteUpdateDTO = {...any NoteCreateDTO fields except date}
+UserInfo = {nick, email}
+err = http code 400-599
 
-tag_match: note_id, tag_id
-
-token impl depends on backend
-
-## Server
-login_info={nick}
-
-entry_dto={}
-
-rule={}
-
-|Name|Link|Return|
-|:-: |:-: |:-:   |
+|Name|Link|Return|Info|
+|:-: |:-: |:-:   |:-:|
 |__Auth__|||
-|Create Account| POST /auth/create {nick,pw,email} | {login_info}/EC |
-|Login         | POST /auth/login {email,pw}       | {login_info}/EC |
-|Auto login(cookies)| GET  /auth/auto | {login_info} / EC |
-|Logout|POST /auth/logout | NONE |
+|Create Account| POST /auth/create {nick,pw,email} | UserInfo / err | err = email already used|
+|Login         | POST /auth/login {email,pw}       | UserInfo / err | err = wrong email or pw|
+|Check login| GET  /auth/auto | UserInfo / err |
+|Logout|POST /auth/logout |  |
 |__Entries__|||
-|All|GET /ent/get?page&ps|[entry_dto, entry_count]|
-|Get|GET /ent/get/id |entry_dto|
-|Create|POST /ent/crt/id {req_fields} |{entry_dto}/EC|
-|Update|POST /ent/update/id {...fields}|OK/FAIL|
-|Update Tags|POST /ent/update_tags/id {...fields}|OK/FAIL|
-|Delete|POST /ent/delete?id |OK/FAIL|
+|Get paged|GET /ent/get?<page>&<ps>|[NoteDTO]|ps = pagesize. Empty set in case of page overflow|
+|Get one|GET /ent/get/id|NoteDto|
+|Create|POST /ent/create NoteCreateDto | ID /err |
+|Update|POST /ent/update/id {...fields}| OK / err|
+|Update tags|POST /ent/update_tags/id [tags]| OK / err|
+|Delete|POST /ent/delete/id | OK / err|
 |__Tags__|||
-|All|/tg/all|[{title,count}]|
-|__Search__ V2|||
-|__Tag rules__ V3|||
-|__Suggestion__ V4|||
+|All|GET /tg/all|[{title,count}]|
+|List|GET /tg/list|[title]|
+|Alike| GET /tg/alike?<pref>&<max>| [title] |
+|__Search__ V2||
+|Search|POST /search?<page>&<ps> {title?,link?,date_mx?,date_mn?,tags?}|[NoteDTO]| ps = pagesize. Empty set in case of page overflow|
