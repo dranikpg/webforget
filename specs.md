@@ -2,9 +2,13 @@
 ## SERVER
 
 NoteDTO = {id, title, descr, link, tags: string[], date:"YYYY-MM-DD"}
+
 NoteCreateDTO = {title,descr,link,tags,date? DEFAULT CURDAY}
+
 NoteUpdateDTO = {...any NoteCreateDTO fields except date}
+
 UserInfo = {nick, email}
+
 err = http code 400-599
 
 |Name|Link|Return|Info|
@@ -15,7 +19,7 @@ err = http code 400-599
 |Check login| GET  /auth/auto | UserInfo / err |
 |Logout|POST /auth/logout |  |
 |__Entries__|||
-|Get paged|GET /ent/get?<page>&<ps>|[NoteDTO]|ps = pagesize. Empty set in case of page overflow|
+|Get paged|GET /ent/get?page&ps|[NoteDTO]|ps = pagesize. Empty set in case of page overflow|
 |Get one|GET /ent/get/id|NoteDto|
 |Create|POST /ent/create NoteCreateDto | ID /err |
 |Update|POST /ent/update/id {...fields}| OK / err|
@@ -24,6 +28,6 @@ err = http code 400-599
 |__Tags__|||
 |All|GET /tg/all|[{title,count}]|
 |List|GET /tg/list|[title]|
-|Alike| GET /tg/alike?<pref>&<max>| [title] |
+|Alike| GET /tg/alike?pref&max| [title] |
 |__Search__ V2||
-|Search|POST /search?<page>&<ps> {title?,link?,date_mx?,date_mn?,tags?}|[NoteDTO]| ps = pagesize. Empty set in case of page overflow|
+|Search|POST /search?page&ps {title?,link?,date_mx?,date_mn?,tags?}|[NoteDTO]| ps = pagesize. Empty set in case of page overflow|
