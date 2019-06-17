@@ -6,27 +6,8 @@ use super::models::{Tag, NewTag, Tagmap, TagmapInsert};
 use super::schema::{tags,tagmap} ;
 
 
-
-//better and faster version?
-/*pub fn create_missing(conn: &RConn, user_id: i32, tags: &Vec<String>){
-    //let mut buf = String::new();
-    for tag in tags{
-        let s = &format!(" IF NOT EXISTS (SELECT * FROM webforget.tags t WHERE t.name = '{}')
-            INSERT INTO webforget.tags(name, user_id) VALUES('{}',{});",
-        tag,tag, user_id);
-        println!("{}",s);
-        //buf.push_str(s);
-        let query = diesel::sql_query(s);
-        println!("{:?}", query.execute(conn));
-    }
-    /*let query = diesel::sql_query(buf);
-    println!("{:?}", query.execute(conn));*/
-}*/
-
 pub fn create_missing(conn: &RConn, user_id: i32, tags: &Vec<String>){
     for tag in tags{
-        println!("{:?}",tags::table.filter(tags::name.eq(tag))
-            .get_result::<Tag>(conn).is_err());
         if tags::table.filter(tags::name.eq(tag))
             .get_result::<Tag>(conn).is_err(){
             diesel::insert_into(tags::table).values(NewTag{
@@ -35,6 +16,13 @@ pub fn create_missing(conn: &RConn, user_id: i32, tags: &Vec<String>){
             }).execute(conn);
         }
     }
+}
+
+pub fn autodelete(conn: &RConn, user_id: i32){
+    info!("Running autodelte");
+    let qbase = format!("DELETE from tags WHERE tags.user_id = '{}' 
+            AND NOT EXISTS (SELECT * FROM tagmap WHERE tagmap.tag_id = tags.id);", user_id);
+    let rq = diesel::sql_query(&qbase).execute(conn);
 }
 
 //TODO BETTER UPDATE

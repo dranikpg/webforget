@@ -18,5 +18,7 @@ export default{
     QUERY_MORE: ct++,
     NOTES_DROP_LOCAL: ct++,
     TAGS_PREFIXS:ct++,
-    NOTE_DELETE:ct++
+    NOTE_DELETE:ct++,
+    NOTE_UPDATE: ct++,
+    NOTE_CREATE: ct++,
 }

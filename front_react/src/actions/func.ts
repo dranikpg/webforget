@@ -1,7 +1,7 @@
 import D from '../dispatcher'
 
 import AT from './types'
-import {FAction, User, Search} from '../common';
+import {FAction, User, Search, Note} from '../common';
 
 export function start(){
     D.dispatch({
@@ -132,5 +132,19 @@ export function dp_note_delete(id: number){
     D.dispatch({
         actionType: AT.NOTE_DELETE,
         payload: id
+    })
+}
+
+export function dp_note_create(note: Note){
+    D.dispatch({
+        actionType: AT.NOTE_CREATE,
+        payload: note
+    })
+}
+
+export function dp_note_update(note: Note){
+    D.dispatch({
+        actionType: AT.NOTE_UPDATE,
+        payload: note
     })
 }

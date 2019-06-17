@@ -49,6 +49,8 @@ class NoteStore extends EventEmitter{
         else if(a.actionType == AT.SYNC_AFTERBURN) this.afterburn_sync();
         else if(a.actionType == AT.NOTES_DROP_LOCAL) this.local_drop();
         else if(a.actionType == AT.NOTE_DELETE)this.note_delete_instant(<number><unknown>a.payload!);
+        else if(a.actionType == AT.NOTE_CREATE)this.note_create_instant(<Note><unknown>a.payload!);
+        else if(a.actionType == AT.NOTE_UPDATE)this.note_update_instant(<Note><unknown>a.payload!);
     }
 
     //
@@ -230,7 +232,7 @@ class NoteStore extends EventEmitter{
         let nts = resp.data;
         queried = false;
 
-        if(nts.length == 0){
+        if(nts.length < PAGE_SIZE){
             hasm = false;
         }else hasm = true;
         for (var ntkey in nts){

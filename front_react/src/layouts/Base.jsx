@@ -26,10 +26,9 @@ class Base extends React.Component{
 
     render(){
         let search = this.search();
-        console.log(search);
         return (
             <React.Fragment>
-                <Bar/>
+                <Bar search={search} />
                 <Container maxWidth="lg" style={belowtbStyle}>
                     <NoteList search={search}/>
                 </Container>

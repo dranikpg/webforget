@@ -4,7 +4,7 @@ import { copy_note, fresh_note } from '../util';
 import { Container, TextField, Box, Grid, Button, Paper } from '@material-ui/core';
 
 import TagEdit from '../cp/edit/TagEdit';
-import { dp_note_delete } from '../actions/func';
+import { dp_note_delete, dp_note_create, dp_note_update } from '../actions/func';
 
 const btnpStyle = {
     marginTop: 30
@@ -118,10 +118,10 @@ class Edit extends React.Component{
 
     a_apply(){
         if(this.orig == undefined){
-            NoteStore.note_create_instant(this.state.obj);
+            dp_note_create(this.state.obj);
         }else{
             copy_note(this.state.obj, this.orig);
-            NoteStore.note_update_instant(this.orig);
+            dp_note_update(this.orig);
         }
         this.a_cancel();
     }

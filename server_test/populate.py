@@ -9,7 +9,7 @@ fake = Faker()
 
 curmt = lambda: int(round(time.time() * 1000))
 
-for x in range(0,500):
+for x in range(0,5000):
 	url = fake.url(schemes=None)
 	title = fake.catch_phrase()
 	desc = fake.paragraph(nb_sentences=3, variable_nb_sentences=True, ext_word_list=None)
@@ -26,6 +26,6 @@ for x in range(0,500):
 	time.sleep(0.05)
 
 ms1 = curmt()
-notes_all(page=1,ps=100)
+notes_all(fm=100000,ps=100)
 ms2 = curmt()
 print("100 download took ", (ms2-ms1))

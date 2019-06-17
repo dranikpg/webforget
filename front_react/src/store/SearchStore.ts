@@ -5,8 +5,7 @@ import { FAction, Search, Note} from "../common";
 import StateStore from "./StateStore";
 import NoteStore from "./NoteStore";
 import Axios, { AxiosResponse } from "axios";
-import { APIURL } from "../util";
-
+import { APIURL, copy_note } from "../util";
 const PAGE_SIZE = 10;
 const CG = 'C';
 
@@ -24,16 +23,41 @@ class SearchStore extends EventEmitter{
     }
 
     _action(a: FAction){
-        console.log(a);
         if(a.actionType == AT.SEARCH){
             this.search(a.payload as Search);
         }else if(a.actionType == AT.SEARCH_EXTEND){
             if(!StateStore.online())return;
             this.search_extend();
-        }else if(a.actionType == AT.NOTE_DELETE) this.delwid(<number><unknown>a.payload);
+        }else if(a.actionType == AT.NOTE_DELETE) this.note_delete(<number><unknown>a.payload);
+        else if(a.actionType == AT.NOTE_UPDATE)this.note_update(<Note><unknown>a.payload);
+        else if(a.actionType == AT.NOTE_CREATE)this.note_create(<Note><unknown>a.payload);
     }
 
-    delwid(id: number){
+    note_create(note: Note){
+        if(this._matches(note)){
+            res.unshift(note);
+            this.emit(CG);
+        }
+    }
+    //if note doesnt match - try to remove it
+    note_update(note: Note){
+        console.log(search, note);
+        if(!this._matches(note))this.note_delete(note.id);
+        else {
+            for(var i = 0; i < res.length; i++){
+                if(res[i].id == note.id) {
+                    if(res[i] == note)return;
+                    copy_note(note, res[i]);
+                    this.emit(CG);
+                    return;
+                }
+            }
+        }
+    }
+
+
+
+    note_delete(id: number){
         console.log("DELWID",id);
         for(var i = 0; i < res.length; i++){
             if(res[i].id == id) {
@@ -68,7 +92,7 @@ class SearchStore extends EventEmitter{
         Axios.post(APIURL+"/search?from="+lid+"&ps="+PAGE_SIZE, s,{withCredentials:true})
         .then((resp: AxiosResponse)=>{
             q = false;
-            if(resp.data.length == 0) hm = false;
+            if(resp.data.length < PAGE_SIZE) hm = false;
             else hm = true;
             for(var m of resp.data){
                 res.push(m);
@@ -84,19 +108,24 @@ class SearchStore extends EventEmitter{
         let notes = NoteStore.notes();
         for(var notek in notes){
             let note = notes[notek];
-            let ms: boolean = true;
-            if(s.link != null) ms = ms && note.link.includes(s.link);
-            if(s.title!= null) ms = ms && note.title.includes(s.title);
-            ms = ms && this._matches_tags(s,note);
-            if(ms)res.push(note);
+            if(this._matches(note))res.push(note);
         }
         this.emit(CG);
     }
 
+    _matches(note: Note){
+        if(search == null)return true;
+        let ms: boolean = true;
+        if(search.link != null) ms = ms && note.link.toLowerCase().includes(search.link.toLowerCase());
+        if(search.title!= null) ms = ms && note.title.toLowerCase().includes(search.title.toLowerCase());
+        ms = ms && this._matches_tags(search,note);
+        return ms;
+    }
+
     _matches_tags(s: Search, n: Note): boolean{
-        if(s.tags!.length == 0)return true;
+        if(!s.tags || s.tags!.length == 0)return true;
         let nss = new Set<String>(n.tags);
-        for(var tag in s.tags){
+        for(var tag of s.tags){
             if(!nss.has(tag))return false;
         }
         return true;

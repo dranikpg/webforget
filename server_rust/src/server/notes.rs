@@ -111,9 +111,9 @@ pub fn r_get(conn: Conn, id: i32, user: UserID) -> Option<Json<NoteDto>>{
 }
 #[post("/ent/create",format = "application/json", data = "<note>")]
 pub fn r_create(conn: Conn, user: UserID, note: Json<NoteNewDto>) -> Option<String>{
-    info!("{:?}",note);
     let res = match notes::create(&conn, note.to_new(user.id)){
         Some(id) => {
+            info!("Note id is: {}", id.id);
             tags::create_missing(&conn, user.id, &note.tags);
             tags::add_missing(&conn, user.id, id.id, &note.tags);
             return Some(id.id.to_string());

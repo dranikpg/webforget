@@ -49,5 +49,5 @@ function curday(){
     
     if(dd<10) dds='0'+dd;
     if(mm<10) mms='0'+mm;
-    return (mms+"-"+dds+"-"+yyyy);
+    return (yyyy+"-"+mms+"-"+dds);
 }
