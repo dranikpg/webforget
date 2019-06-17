@@ -21,6 +21,7 @@ err = http code 400-599
 |__Entries__|||
 |Get paged|GET /ent/get?page&ps|[NoteDTO]|ps = pagesize. Empty set in case of page overflow|
 |Get one|GET /ent/get/id|NoteDto|
+|Get array| GET /ent/get_arr?arr|[NoteDTO]| arr=id1,id2,id3...
 |Create|POST /ent/create NoteCreateDto | ID /err |
 |Update|POST /ent/update/id {...fields}| OK / err|
 |Update tags|POST /ent/update_tags/id [tags]| OK / err|
