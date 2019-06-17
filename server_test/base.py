@@ -23,6 +23,9 @@ def auth_login(email, pw):
 def notes_all(page, ps=10):
 	return s.get(url+"/ent/get?page="+str(page)+"&ps="+str(ps))
 
+def notes_array(arr):
+	return s.get(url+"/ent/get_arr?arr="+(",".join(str(e) for e in arr))+"")
+
 def notes_create(title, desc, link, tags, date=None):
 	data = {"title":title,"descr":desc,"link":link, "tags":tags}
 	if(date != None):
@@ -42,6 +45,7 @@ def notes_update(id, title=None, descr=None, link=None):
 	if(link != None):
 		data["link"] = link
 	return s.post(url+"/ent/update/"+str(id),json=data)
+
 
 #tags
 

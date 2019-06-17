@@ -50,6 +50,7 @@ fn main() {
 
                 server::notes::r_get,
                 server::notes::r_get_all,
+                server::notes::r_get_arr,
                 server::notes::r_create,
                 server::notes::r_update,
                 server::notes::r_update_tags,

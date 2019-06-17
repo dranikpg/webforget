@@ -1,5 +1,5 @@
-
-use rocket::http::Status;
+use rocket::http::{Status,RawStr};
+use rocket::request::FromFormValue;
 use rocket_contrib::json::Json;
 
 use crate::data::{notes,tags};
@@ -36,6 +36,28 @@ impl NoteDto{
 //struct for receiving data
 fn serde_default_date() -> &'static str{
     return "N";
+}
+//
+pub struct IntArray(Vec<i32>);
+impl<'r> FromFormValue<'r> for IntArray{    
+    type Error = &'static str;
+    fn from_form_value(param: &'r RawStr) -> Result<Self, Self::Error> {
+        let mut err = false;
+        let nums = param.split(',').map(|v|{
+            let op = v.parse();
+            if op.is_err(){
+                err = true;
+                return 0;
+            }else{
+                return op.unwrap();
+            }
+        }).collect();
+        if err {
+            return Err("FAILED");
+        }else{
+            return Ok(IntArray(nums));
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -77,6 +99,11 @@ pub fn r_get_all(conn: Conn, user: UserID, page:i64, ps: i64)
     let mut notes = notes_o.unwrap();
     let mut out =  with_tags(conn,notes);
     Some(Json(out))
+}
+#[get("/ent/get_arr?<arr>")]
+pub fn r_get_arr(conn: Conn, user: UserID, arr: IntArray) -> Option<Json<Vec<NoteDto>>>{
+    let res_o = notes::get_user_arr(&conn, user.id, &arr.0);
+    res_o.map(|mut v|Json(with_tags(conn, v)))
 }
 #[get("/ent/get/<id>")]
 pub fn r_get(conn: Conn, id: i32, user: UserID) -> Option<Json<NoteDto>>{

@@ -44,6 +44,21 @@ pub fn get_user_pg(conn: &RConn, user_id: i32, page: i64, pagesize: i64) -> Opti
     q.ok()
 }
 
+pub fn get_user_arr(conn: &RConn, user_id: i32, ids: &[i32]) -> Option<Vec<NoteWT>>{
+    let mut buf = String::with_capacity(ids.len() * 3);
+    for x in 0..ids.len(){
+        buf.push_str(&ids[x].to_string());
+        if x != ids.len() - 1{
+            buf.push(',');
+        }
+    }
+    let qbase = format!("SELECT notes.id,notes.title,notes.descr,notes.link,notes.cdate, GROUP_CONCAT(tags.name SEPARATOR ' ') as tagarr
+        FROM notes JOIN tagmap on notes.id = tagmap.note_id JOIN tags on tagmap.tag_id = tags.id 
+        WHERE notes.user_id = '{}' AND notes.id IN ({}) GROUP BY notes.id", user_id, &buf);
+    let q: QueryResult<Vec<NoteWT>> = diesel::sql_query(&qbase).load(conn);
+    q.ok()
+}
+
 pub fn create(conn: &RConn, note: NewNote) -> Option<ID>{
     let user_id = note.user_id;
     let irs = diesel::insert_into(notes::table)
