@@ -41,9 +41,7 @@ pub fn has(conn: &RConn, id: i32) -> bool{
     };
 }
 pub fn login(conn: &RConn, email: &str, pw: &str) -> Option<User>{
-    println!("LOGIN");
     let us = get_by_email(conn, email);
-    println!("GOT US");
     match us{
         Some(us) => if verified(&us,&pw) {Some(us)} else {None},
         None => None

@@ -56,8 +56,6 @@ pub fn search(conn: &RConn, user_id: i32, search: &Search,
     baseq.push_str(&format!("LIMIT {}",pagesize));
     baseq.push(';');
 
-    println!("{}",baseq);
-
     let rq: QueryResult<Vec<NoteWT>> = diesel::sql_query(&baseq).load(conn);
     rq.ok()
 } 
