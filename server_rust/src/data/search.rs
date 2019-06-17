@@ -20,8 +20,8 @@ pub fn search(conn: &RConn, user_id: i32, search: &Search,
     -> Option<Vec<NoteWT>>{
     let mut baseq = String::from("SELECT notes.id,notes.title,notes.descr,notes.link,notes.cdate, GROUP_CONCAT(tags.name SEPARATOR ' ') as tagarr
         FROM tagmap 
-            JOIN tags ON tagmap.tag_id = tags.id 
-            JOIN notes ON tagmap.note_id = notes.id ");
+            LEFT JOIN tags ON tagmap.tag_id = tags.id 
+            LEFT JOIN notes ON tagmap.note_id = notes.id ");
     baseq.push_str(&format!("WHERE notes.user_id = '{}' AND notes.id < '{}'  \n", user_id, from));
 
     if let Some(title) = &search.title{

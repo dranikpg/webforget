@@ -1,6 +1,6 @@
 //USER
 use super::schema::users;
-use diesel::sql_types::{Integer,Text,VarChar,Date};
+use diesel::sql_types::{Integer,Text,VarChar,Date, Nullable};
 
 //
 
@@ -40,20 +40,16 @@ pub struct Note{
     pub cdate: chrono::NaiveDate  //string for parsing
 }
 #[derive(Debug, QueryableByName)]
+#[table_name="notes"]
 //note with tags array
 pub struct NoteWT{
-    #[sql_type = "Integer"]
     pub id: i32,
-    #[sql_type = "VarChar"]
-    pub title: String,
-    #[sql_type = "Text"]
-    pub descr: String,
-    #[sql_type = "VarChar"]
-    pub link: String,
-    #[sql_type = "Date"]
+    pub title: Option<String>,
+    pub descr: Option<String>,
+    pub link:  Option<String>,
     pub cdate: chrono::NaiveDate,
-    #[sql_type = "VarChar"]
-    pub tagarr: String
+    #[sql_type = "Nullable<VarChar>"]
+    pub tagarr: Option<String>
 }
 
 #[derive(Insertable)]

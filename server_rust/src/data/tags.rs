@@ -25,6 +25,8 @@ use super::schema::{tags,tagmap} ;
 
 pub fn create_missing(conn: &RConn, user_id: i32, tags: &Vec<String>){
     for tag in tags{
+        println!("{:?}",tags::table.filter(tags::name.eq(tag))
+            .get_result::<Tag>(conn).is_err());
         if tags::table.filter(tags::name.eq(tag))
             .get_result::<Tag>(conn).is_err(){
             diesel::insert_into(tags::table).values(NewTag{

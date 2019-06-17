@@ -2,9 +2,9 @@ table! {
     notes (id) {
         id -> Integer,
         user_id -> Integer,
-        title -> Varchar,
-        descr -> Text,
-        link -> Varchar,
+        title -> Nullable<Varchar>,
+        descr -> Nullable<Text>,
+        link -> Nullable<Varchar>,
         cdate -> Date,
     }
 }
