@@ -38,7 +38,8 @@ class NoteList extends React.Component{
                 initialLoad={true}
                 loadMore={this.load_func.bind(this)}
                 hasMore={DAS.has_more()}
-                loader={<div className="loader" key={0}>Loading...</div>}>
+                loader={<div className="loader" key={0}>Loading...</div>}
+                threshold={600}>
                 <div>
                     {local}
                 </div>

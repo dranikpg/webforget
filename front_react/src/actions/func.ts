@@ -19,10 +19,16 @@ export function dp_offline(){
 
 //
 
+export function dp_sync_start(){
+    D.dispatch({
+        actionType: AT.SYNC_START
+    });
+}
+
 export function dp_sync_end(){
     setTimeout(dp_afterburn, 4000);
     D.dispatch({   
-        actionType: AT.SYNC_END,
+        actionType: AT.FULL_INIT,
     });
 }
 
@@ -83,11 +89,9 @@ export function dp_fullinit_request(){
 }
 
 export function dp_fullinit(){
-    setTimeout(()=>{
-        D.dispatch({
-            actionType: AT.FULL_INIT,
-        });
-    },5);
+    D.dispatch({
+        actionType: AT.FULL_INIT,
+    });
 }
 
 export function dp_profile_present(profile: User|null|undefined){

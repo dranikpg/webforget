@@ -33,9 +33,13 @@ class TagStore extends EventEmitter{
     }
 
     search(pref:string){
-        if(pref=="")return;
-        req = pref;
-        if(StateStore.online())this.search_online(pref);
+        if(pref==""){
+            sugg = [];
+            this.emit('S');
+        }else{
+            req = pref;
+            if(StateStore.online())this.search_online(pref);
+        }
     }
 
     search_online(pref:string){

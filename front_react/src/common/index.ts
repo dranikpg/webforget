@@ -4,9 +4,11 @@ export interface FAction {
 }
 
 export interface Search{
-    tags: Set<String>|null,
-    link: string|null,
-    title: string|null,
+    tags: Set<String>|undefined,
+    link: string|undefined,
+    title: string|undefined,
+    max_date: string|undefined,
+    min_date: string|undefined
 }
 
 export interface User{

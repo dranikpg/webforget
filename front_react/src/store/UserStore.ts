@@ -5,7 +5,7 @@ import {APIURL} from '../util'
 
 import Dispatcher from '../dispatcher';
 import AT from '../actions/types';
-import {dp_profile_present, dp_profile_request, dp_profile_impossible} from '../actions/func';
+import {dp_profile_present, dp_profile_request, dp_profile_impossible, dp_offline} from '../actions/func';
 
 import {FAction, User} from '../common';
 
@@ -52,6 +52,7 @@ class UserStore extends EventEmitter{
         }else{
             console.log("Logged in offline");
             user = {nick: nick, email: localStorage.getItem("user.email")!};
+            dp_offline()
             dp_profile_present(user);
         }
     }

@@ -12,7 +12,11 @@ export class Splash extends React.Component{
         super(props);
     }
     render(){
-        return (<p style={belowtbStyle}>SPLASH {this.props.msg}</p>)
+        if(this.props.load)
+            return (<p style={belowtbStyle}>LOADING</p>)
+        else {
+            return <p style={belowtbStyle}SYNCING></p>
+        }
     }
 }
 

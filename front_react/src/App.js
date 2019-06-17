@@ -12,6 +12,7 @@ import Splash from './layouts/Splash.jsx'
 import Auth from './layouts/Auth.jsx';
 import Base from './layouts/Base';
 import Edit from './layouts/Edit';
+import Sync from './layouts/Sync';
 
 let frender = true;
 
@@ -21,7 +22,7 @@ class App extends React.Component{
         super(props);
         this.state = {
             loading:StateStore.loading(),
-            syncing: false, 
+            syncing: undefined, 
             authed:false, 
             full_loaded: false
         }
@@ -56,8 +57,12 @@ class App extends React.Component{
                 full_loaded: StateStore.full_loaded()});
     }
     
-    render_splash(msg){
-        return <Splash msg={msg} />;
+    render_splash(){
+        return <Splash load={true} />;
+    }
+
+    render_sync(){
+        return <Sync/>
     }
 
     render_auth(){
@@ -69,18 +74,19 @@ class App extends React.Component{
             setTimeout(()=>dp_fullinit_request(),10);
             frender = false;
         }
-        return <Base/>;
+        if(this.state.full_loaded) return <Base/>;
+        else return null;
     }
 
     render(){
-        if(this.state.loading)return this.render_splash("Loading");
+        if(this.state.loading)return this.render_splash();
         if(!this.state.authed)return this.render_auth();
-        if(this.state.syncing)return this.render_splash("Syncing");
+        if(this.state.syncing)return this.render_sync();
         return (
             <Switch>  
                 <Route path="/create" component={Edit}/> 
                 <Route path="/edit/:id" component={Edit}/> 
-                <Route path="/" render={this.render_main}/>
+                <Route path="/" render={this.render_main.bind(this)}/>
             </Switch>
         );
     }

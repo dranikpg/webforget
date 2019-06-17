@@ -22,6 +22,24 @@ const descStyle = {
     paddingBottom: '2em'
 };
 
+export function render_tags(tags){
+    let cs = [];
+    for(var tk in tags){
+        let tag = tags[tk];
+        cs.push(
+            <Chip
+                style={chipStyle}
+                variant="outlined"
+                size="small"
+                label={tag}
+                /*onClick={handleClick}
+                onDelete={handleDelete}*/
+            />
+        )
+    }
+    return <div style={chipdivStyle}> {cs} </div>;
+}
+
 class NoteEntry extends React.Component{
     constructor(props){
         super(props);
@@ -41,23 +59,21 @@ class NoteEntry extends React.Component{
                     />   
                 </CardActionArea>
                 <CardContent>
-                    {e.id}
-                    <Typography variant="body1"
+                    {e.descr.length > 0 && <Typography variant="body1"
                         style={descStyle}>
                         {e.descr}   
-                    </Typography>
+                    </Typography>}
                     <Grid container spacing={3}>
                         <Grid item>
-                        <Button variant="outlined"
-                            component={Link} to={"/edit/"+e.id}>
-                            EDIT
-                        </Button>
+                            <Button variant="outlined"
+                                component={Link} to={"/edit/"+e.id}>
+                                EDIT
+                            </Button>
                         </Grid>
                         <Grid item>
-                            {this.getChips(e)}
+                            {render_tags(e.tags)}
                         </Grid>
                     </Grid>
-                    
                 </CardContent>
             </Card>
         );
@@ -81,23 +97,6 @@ class NoteEntry extends React.Component{
     }
     getDate(date){
         return moment(date, "YYYY-MM-DD").fromNow();
-    }
-    getChips(e){
-        let cs = [];
-        for(var tk in e.tags){
-            let tag = e.tags[tk];
-            cs.push(
-                <Chip
-                    style={chipStyle}
-                    variant="outlined"
-                    size="small"
-                    label={tag}
-                    /*onClick={handleClick}
-                    onDelete={handleDelete}*/
-                />
-            )
-        }
-        return <div style={chipdivStyle}> {cs} </div>;
     }
 }
 

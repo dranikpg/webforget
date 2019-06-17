@@ -60,10 +60,18 @@ class TagEdit extends React.Component{
     }
 
     upd_text(ev){
-        dp_tags_search(ev.target.value);
+        let ntxt = ev.target.value;
+        if(ntxt == ""){
+            dp_tags_search("");
+        }else{
+            setTimeout(()=>{
+                if(ntxt == this.state.txt) dp_tags_search(ntxt);
+            },300); 
+        }
+        
         this.setState({
             ...this.state,
-            txt: ev.target.value,
+            txt: ntxt,
             anchor:ev.target
         });
     }
@@ -94,16 +102,17 @@ class TagEdit extends React.Component{
 
     render() {
         let sugg = [];
-        let rsugg = this.state.sugg;
-        for(var sg of rsugg){
-            sugg.push(
-                <ListItem button onClick={()=>{
-                    this.add_auto(sg);
-                }}>
-                    <ListItemText primary={sg}/>
-                </ListItem>);
+        if(this.state.txt.length > 0){
+            let rsugg = this.state.sugg;
+            for(var sg of rsugg){
+                sugg.push(
+                    <ListItem button onClick={()=>{
+                        this.add_auto(sg);
+                    }}>
+                        <ListItemText primary={sg}/>
+                    </ListItem>);
+            }
         }
-
         return (
             <Paper style={paperStyle}>
                 <Typography variant="caption">
@@ -125,7 +134,7 @@ class TagEdit extends React.Component{
                         onKeyPress={this.field_catch.bind(this)}
                         onChange={this.upd_text.bind(this)}
                     /> 
-                   <Popper open={this.state.anchor != undefined} 
+                   <Popper open={this.state.anchor != undefined && sugg.length > 0} 
                             anchorEl={this.state.anchor}
                             placement="bottom-start">
                         <Paper>

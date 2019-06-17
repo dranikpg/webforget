@@ -45,7 +45,8 @@ class NoteStore extends EventEmitter{
     _action(a :FAction){
         if(a.actionType == AT.NOTES_EXTEND) this.load_more();
         else if(a.actionType == AT.FULL_INIT_REQUEST)this.full_init();
-        else if(a.actionType == AT.SYNC_END)this.end_sync();
+        else if(a.actionType == AT.SYNC_START) this.start_sync();
+        else if(a.actionType == AT.FULL_INIT)this.end_sync();
         else if(a.actionType == AT.SYNC_AFTERBURN) this.afterburn_sync();
         else if(a.actionType == AT.NOTES_DROP_LOCAL) this.local_drop();
     }
@@ -85,6 +86,10 @@ class NoteStore extends EventEmitter{
         }
     }
 
+    local_get(){
+        return local_updates;
+    }
+
     local_drop(){
         local_updates = [];
         this.local_updates_save();
@@ -97,15 +102,17 @@ class NoteStore extends EventEmitter{
     //
 
     sync_required(){
-        if(!this.online())return;
+        if(!this.online())return false;
         this.local_update_read();
-        if(local_updates.length == 0)return;
-        this.start_sync();
+        if(local_updates.length == 0)return false;
+        else return true;
     }
 
     start_sync(){
+        StateStore.sync_inc();
         for(var updk in local_updates){
             let upd = local_updates[updk];
+            StateStore.sync_inc();
             switch(upd.action){
                 case ActionT.CREATE:{
                     StateStore.sync_inc();
@@ -124,6 +131,7 @@ class NoteStore extends EventEmitter{
                 }
             }
         }
+        StateStore.sync_update(); //empty runner
     }
 
     end_sync(){
@@ -145,6 +153,7 @@ class NoteStore extends EventEmitter{
     // LOAD
 
     save_notes(){
+        if(notes.length > PAGE_SIZE*3)return;
         let notesp = notes.slice(Math.min(PAGE_SIZE*3,notes.length));
         localStorage.setItem("notes", JSON.stringify(notesp));
     }
@@ -274,7 +283,7 @@ class NoteStore extends EventEmitter{
         else{
             let _self = this;
             axios.post(APIURL+"/ent/create", note, {withCredentials:true})
-            .then((rsp) => {_self._create_then(note, rsp.data.id)})
+            .then((rsp) => {_self._create_then(note, rsp.data)})
             .catch((err) => {_self._create_fail(note)});
         }
     }
@@ -309,7 +318,8 @@ class NoteStore extends EventEmitter{
         if(!this.online())this._upd_fail(note);
         else{
             let _self = this;
-            axios.post(APIURL+"/ent/update/"+note.id, note, {withCredentials:true})
+            let note_fmt = {title:note.title, link:note.link, descr:note.descr};
+            axios.post(APIURL+"/ent/update/"+note.id, note_fmt, {withCredentials:true})
             .then((rsp) => {
                 return axios.post(APIURL+"/ent/update_tags/"+note.id, note.tags, {withCredentials:true})
             })

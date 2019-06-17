@@ -6,6 +6,7 @@ export default{
     PROFILE_REQUEST: ct++,  //auth request
     PROFILE_IMPOSSIBLE: ct++, //auth impossbile (no profile & connection)
     FULL_INIT_REQUEST: ct++,  //request full init 
+    SYNC_START: ct++,         //start sync
     SYNC_END: ct++,           //end sync
     SYNC_AFTERBURN: ct++,     //sync afterburn
     FULL_INIT: ct++,          //start full mode

@@ -4,13 +4,14 @@ import AT from '../actions/types';
 
 import {FAction, User} from '../common';
 import NoteStore from "./NoteStore";
-import { dp_sync_end, dp_fullinit } from "../actions/func";
+import { dp_sync_end, dp_fullinit, dp_sync_start } from "../actions/func";
 
 let loaded: boolean = false;
 let full_loaded: boolean = false;
 let online: boolean = false;
 
 let sync: number = 0;
+let syncr = false;
 
 const LCHANGE = 'L';
 
@@ -28,6 +29,7 @@ class StateStore extends EventEmitter{
         console.log(a);
         switch(a.actionType){
             case AT.OFFLINE:{
+                console.log("OFFLINE");
                 online = false;
                 break;
             }
@@ -44,7 +46,7 @@ class StateStore extends EventEmitter{
                 break;
             }
             case AT.FULL_INIT_REQUEST:{
-                this.sync_start();
+                this.full_init_rq();
                 break;
             }
             case AT.FULL_INIT:{
@@ -80,25 +82,29 @@ class StateStore extends EventEmitter{
         }
     }
 
-    sync_start(){
-        NoteStore.sync_required();
-        if(sync > 0){
+    full_init_rq(){
+        if(NoteStore.sync_required()){
+            syncr = true;
             this.emit(LCHANGE);
         }else{
-            console.log("Sync skipped");
-            dp_fullinit();
+            setTimeout(()=>dp_fullinit(),10);
         }
     }
 
     sync_end(){
-        dp_sync_end();
+        syncr = false;
+        setTimeout(()=>dp_sync_end(),10);
         this.emit(LCHANGE);
     }
 
     //
 
-    syncing(): boolean{
+    sync_running(): boolean{
         return sync > 0;
+    }
+
+    syncing(): boolean{
+        return syncr;
     }
 
     online() : boolean{
