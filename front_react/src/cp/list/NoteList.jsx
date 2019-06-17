@@ -1,12 +1,13 @@
 import React from 'react';
 import { dp_query, dp_query_more } from '../../actions/func';
-
 import DAS from '../../store/DataAccessStore';
 import State from '../../store/UserStore';
 import NoteStore from '../../store/NoteStore';
 
 import InfiniteScroll from 'react-infinite-scroller';
 import NoteEntry from './NoteEntry';
+
+let lastj = null;
 
 class NoteList extends React.Component{
     constructor(props){
@@ -19,6 +20,7 @@ class NoteList extends React.Component{
         }
         DAS.c_data(this.upd_list.bind(this));
     }
+
 
     render_loading(){
         return <p>Loading</p>
@@ -47,8 +49,17 @@ class NoteList extends React.Component{
         );
     }
     load_func(page){
-        console.log("QUERY MORE");
-        setTimeout(()=>dp_query_more(),10);
+        let q = true;
+        let s = this.props.search;
+        if(lastj == s || JSON.stringify(s) == lastj) q = false;
+
+        if(q){
+            setTimeout(()=>dp_query(this.props.search),10);
+            if(s == null) lastj = null;
+            else lastj = JSON.stringify(s);
+        }
+        else  setTimeout(()=>dp_query_more(),10);
+
     }
     has_more(){
         console.log("RQ", DAS.has_more());

@@ -30,7 +30,6 @@ let curp = 1;
 
 let queried: boolean = false;  
 
-let del_since_rq = 0;
 let newid_map: number[] = [];
 
 const LISTC: string = 'LC';
@@ -49,6 +48,7 @@ class NoteStore extends EventEmitter{
         else if(a.actionType == AT.FULL_INIT)this.end_sync();
         else if(a.actionType == AT.SYNC_AFTERBURN) this.afterburn_sync();
         else if(a.actionType == AT.NOTES_DROP_LOCAL) this.local_drop();
+        else if(a.actionType == AT.NOTE_DELETE)this.note_delete_instant(<number><unknown>a.payload!);
     }
 
     //
@@ -112,7 +112,6 @@ class NoteStore extends EventEmitter{
         StateStore.sync_inc();
         for(var updk in local_updates){
             let upd = local_updates[updk];
-            StateStore.sync_inc();
             switch(upd.action){
                 case ActionT.CREATE:{
                     StateStore.sync_inc();
@@ -162,7 +161,7 @@ class NoteStore extends EventEmitter{
         if(!this.online()|| this.syncing())return false;
         console.log("first query");
         let page = 1;
-        axios.get(APIURL+"/ent/get?page="+page+"&ps="+PAGE_SIZE,
+        axios.get(APIURL+"/ent/get?from="+1e7+"&ps="+PAGE_SIZE,
             {withCredentials: true})
             .then(this._recv_first.bind(this))
             .catch(this._recv_first_fail.bind(this));
@@ -219,8 +218,8 @@ class NoteStore extends EventEmitter{
     load_more(): boolean{
         if(!this.online()|| this.syncing() || queried)return false;
         queried = true;
-        let page = this.next_server_page();
-        axios.get(APIURL+"/ent/get?page="+page+"&ps="+PAGE_SIZE,
+        let page = this.last_id();
+        axios.get(APIURL+"/ent/get?from="+page+"&ps="+PAGE_SIZE,
             {withCredentials: true})
             .then(this._recv_more.bind(this))
             .catch(this._recv_fail.bind(this));
@@ -229,21 +228,17 @@ class NoteStore extends EventEmitter{
 
     _recv_more(resp: AxiosResponse){
         let nts = resp.data;
+        queried = false;
+
         if(nts.length == 0){
-            console.log("return 0, no more notes");
             hasm = false;
-            queried = false;
-            this.emit(LISTC);
         }else hasm = true;
         for (var ntkey in nts){
             let note = nts[ntkey];
-
             if(note_ids.has(note.id))continue;
             note_ids.add(note.id);
-            
             notes.push(note);
         }
-        queried = false;
         this.save_notes();
         this.emit(LISTC);
     }
@@ -368,7 +363,6 @@ class NoteStore extends EventEmitter{
     //DELETE
 
     note_delete_instant(id: number){
-        del_since_rq++;
         for(var i = 0; i < notes.length; i++){
             if(notes[i].id == id){
                 notes.splice(i,1);
@@ -437,14 +431,9 @@ class NoteStore extends EventEmitter{
 
     //
 
-    next_server_page(): number{
-        if(del_since_rq == 0)return curp++;
-        else{
-            let val = curp - Math.ceil(del_since_rq/PAGE_SIZE);
-            del_since_rq = 0;
-            curp++;
-            return Math.max(1,val);
-        }
+    last_id(): number{
+        if(!notes || notes.length==0) return 1e7;
+        else return notes[notes.length-1].id;
     }
 
     //

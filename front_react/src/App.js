@@ -79,6 +79,7 @@ class App extends React.Component{
     }
 
     render(){
+        console.log(this.state);
         if(this.state.loading)return this.render_splash();
         if(!this.state.authed)return this.render_auth();
         if(this.state.syncing)return this.render_sync();

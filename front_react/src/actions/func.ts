@@ -62,13 +62,7 @@ export function dp_search(s: Search){
     });
 } 
 
-export function dp_search_dismiss(s: Search){
-    D.dispatch({
-        actionType: AT.SEARCH_DISMISS
-    });
-}
-
-export function dp_search_extend(s: Search){
+export function dp_search_extend(){
     D.dispatch({
         actionType: AT.SEARCH_EXTEND
     });
@@ -129,4 +123,14 @@ export function dp_tags_search(pref:string){
         actionType: AT.TAGS_PREFIXS,
         payload:{pref:pref}
     });
+}
+
+
+//
+
+export function dp_note_delete(id: number){
+    D.dispatch({
+        actionType: AT.NOTE_DELETE,
+        payload: id
+    })
 }

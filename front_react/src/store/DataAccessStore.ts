@@ -28,25 +28,23 @@ class DataAccessStore extends EventEmitter{
             if(a.payload == null)this.query_notes();
             else this.query_seach(a.payload! as Search);
         }else if(a.actionType == AT.QUERY_MORE){
-            this.query_more(a.payload! as Search);
+            this.query_more();
         }
     }
 
     query_seach(s: Search){
         searching = true;
-        if(!SearchStore.is_same(s)){
-            noansw = true;
+        noansw = true;
             setTimeout(()=>{
                 dp_search(s);
             },10);
-        }
         this.emit(CG);
     }
 
-    query_more(s: Search|undefined){
+    query_more(){
         if(searching){
             setTimeout(()=>{
-                dp_search_extend(s!);
+                dp_search_extend();
             },10);
         }else{
             if(!NoteStore.any_sent()) this.query_notes();

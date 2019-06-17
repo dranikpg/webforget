@@ -4,13 +4,17 @@ import AT from '../actions/types';
 import { FAction, Search, Note} from "../common";
 import StateStore from "./StateStore";
 import NoteStore from "./NoteStore";
+import Axios, { AxiosResponse } from "axios";
+import { APIURL } from "../util";
 
 const PAGE_SIZE = 10;
 const CG = 'C';
 
-let lastj: string|null = null;
-let count: number = 0;
+let search: Search|undefined = undefined;
 let res: Array<Note> = new Array();
+let hm = true;
+
+let q = false;
 
 class SearchStore extends EventEmitter{
 
@@ -20,33 +24,60 @@ class SearchStore extends EventEmitter{
     }
 
     _action(a: FAction){
+        console.log(a);
         if(a.actionType == AT.SEARCH){
             this.search(a.payload as Search);
         }else if(a.actionType == AT.SEARCH_EXTEND){
             if(!StateStore.online())return;
             this.search_extend();
+        }else if(a.actionType == AT.NOTE_DELETE) this.delwid(<number><unknown>a.payload);
+    }
+
+    delwid(id: number){
+        console.log("DELWID",id);
+        for(var i = 0; i < res.length; i++){
+            if(res[i].id == id) {
+                res.splice(i,1);
+                this.emit(CG);
+                return;
+            }
         }
     }
 
     search(s: Search){
-        lastj = JSON.stringify(s);
+        hm = true;
         res.length = 0;
-        if(StateStore.online()) this.search_online(s,1);
+        search = s;
+        if(StateStore.online()) this.search_online(s,1e7);
         else this.search_offline(s);
     }
 
+    get_lid(){
+        if(res.length == 0)return 1e7;
+        else return res[res.length-1].id;
+    }
+
     search_extend(){
-        if(lastj == null)return;
         if(!this.has_more())return;
-        let curs = JSON.parse(lastj);
-        let page = (res.length / PAGE_SIZE) + 1;
-        this.search_online(curs,page);
+        if(!search)return;
+        this.search_online(search!,this.get_lid());
     }
     
-    search_online(s: Search, page: number){
-        if(page != 1)return;
-        //TODO
-        this.search_offline(s);
+    search_online(s: Search, lid: number){
+        if(q)return;
+        Axios.post(APIURL+"/search?from="+lid+"&ps="+PAGE_SIZE, s,{withCredentials:true})
+        .then((resp: AxiosResponse)=>{
+            q = false;
+            if(resp.data.length == 0) hm = false;
+            else hm = true;
+            for(var m of resp.data){
+                res.push(m);
+            }
+            this.emit(CG);
+        })
+        .catch((err)=>{
+            q = false;
+        })
     }
 
     search_offline(s: Search){
@@ -59,13 +90,11 @@ class SearchStore extends EventEmitter{
             ms = ms && this._matches_tags(s,note);
             if(ms)res.push(note);
         }
-        count = res.length;
-
         this.emit(CG);
     }
 
     _matches_tags(s: Search, n: Note): boolean{
-        if(s.tags!.size == 0)return true;
+        if(s.tags!.length == 0)return true;
         let nss = new Set<String>(n.tags);
         for(var tag in s.tags){
             if(!nss.has(tag))return false;
@@ -79,16 +108,8 @@ class SearchStore extends EventEmitter{
         return res;
     }
 
-    is_same(s: Search){
-        return JSON.stringify(s) == lastj;
-    }
-
-    lastj(): string|null{
-        return lastj;
-    }
-
     has_more(): boolean{
-        return res.length < count;
+        return hm;
     }
 
     //
