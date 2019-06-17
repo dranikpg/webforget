@@ -35,12 +35,12 @@ pub fn get(conn: &RConn, id: i32, user_id: i32) -> Option<NoteWT>{
     q.ok()
 }*/
 
-pub fn get_user_pg(conn: &RConn, user_id: i32, page: i64, pagesize: i64) -> Option<Vec<NoteWT>>{
-    let offset = (page - 1) * pagesize;
+pub fn get_user_pg(conn: &RConn, user_id: i32, from: i64, pagesize: i64) -> Option<Vec<NoteWT>>{
     let qbase = format!("SELECT notes.id,notes.title,notes.descr,notes.link,notes.cdate, GROUP_CONCAT(tags.name SEPARATOR ' ') as tagarr
         FROM notes JOIN tagmap on notes.id = tagmap.note_id JOIN tags on tagmap.tag_id = tags.id 
-        WHERE notes.user_id = '{}' GROUP BY notes.id LIMIT {},{};",user_id, offset, pagesize);
+        WHERE notes.user_id = '{}' AND notes.id < '{}' GROUP BY notes.id ORDER BY notes.id DESC LIMIT {};",user_id, from, pagesize);
     let q : QueryResult<Vec<NoteWT>> = diesel::sql_query(&qbase).load(conn);
+    println!("{:?}",q);
     q.ok()
 }
 

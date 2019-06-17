@@ -89,10 +89,10 @@ impl<'a> NoteNewDto<'a>{
 //struct for updating data
 type NoteUpdateDto<'a> = UpdateNote<'a>;
 //routes
-#[get("/ent/get?<page>&<ps>")]
-pub fn r_get_all(conn: Conn, user: UserID, page:i64, ps: i64) 
+#[get("/ent/get?<from>&<ps>")]
+pub fn r_get_all(conn: Conn, user: UserID, from:i64, ps: i64) 
                         -> Option<Json<Vec<NoteDto>>>{
-    let notes_o = notes::get_user_pg(&conn, user.id, page, ps);
+    let notes_o = notes::get_user_pg(&conn, user.id, from, ps);
     if notes_o.is_none(){
         return None;
     }
