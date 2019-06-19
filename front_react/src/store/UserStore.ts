@@ -65,6 +65,7 @@ class UserStore extends EventEmitter{
             _this._save_profile();
             dp_profile_present(user);
         }).catch(function (err: AxiosError){    //try offline
+            console.log(err);
             if(err.response){
                 user = null; 
                 dp_profile_request();

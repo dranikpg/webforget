@@ -43,7 +43,7 @@ class TagStore extends EventEmitter{
     }
 
     search_online(pref:string){
-        Axios.get(APIURL+"/tg/alike?search="+pref, {withCredentials:true})
+        Axios.get(APIURL+"/tg/alike?search="+pref+"&max=10", {withCredentials:true})
         .then((resp: AxiosResponse)=>{
             if(req != pref)return;
             sugg = resp.data;

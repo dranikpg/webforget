@@ -94,7 +94,7 @@ class Edit extends React.Component{
                         justify="space-between">
                                 <Button onClick={this.a_cancel.bind(this)}>CANCEL</Button>
                                 {this.orig!=undefined && <Button onClick={this.a_delete.bind(this)}>DELETE</Button>}
-                                <Button onClick={this.a_apply.bind(this)} color="primary">APPLY</Button>
+                                <Button onClick={this.a_apply.bind(this)} color="secondary">APPLY</Button>
                         </Grid>
                     </Paper>
                 </Container>
