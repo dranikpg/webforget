@@ -100,6 +100,7 @@ class TagEdit extends React.Component{
         if(this.props.cb != undefined)this.props.cb();
     }
 
+
     render() {
         let sugg = [];
         if(this.state.txt.length > 0){
@@ -121,35 +122,69 @@ class TagEdit extends React.Component{
                 <div style={chiprootStyle}>
                     {this.getChips()}
                 </div>
-                <Grid container
-                    direction="row"
-                    justify="space-between"
-                    alignItems="baseline">
-                    <TextField
-                        autoComplete="off"
-                        margin="normal"
-                        label="Add tag"
-                        id="add-tag"
-                        value={this.state.txt}
-                        onKeyPress={this.field_catch.bind(this)}
-                        onChange={this.upd_text.bind(this)}
-                    /> 
-                   <Popper open={this.state.anchor != undefined && sugg.length > 0} 
-                            anchorEl={this.state.anchor}
-                            placement="bottom-start">
-                        <Paper>
-                            <List dense>
-                                {sugg}
-                            </List>
-                        </Paper>
-                    </Popper>
-
-                    <Button variant="outlined" size="small"
-                        onClick={this.add_tag.bind(this)}>Add</Button>
-                </Grid>
-                
+                {this.props.dialog && this.render_sugg_dialog(sugg)}
+                {!this.props.dialog && this.render_sugg(sugg)} 
             </Paper>
         );
+    }
+
+    render_sugg(sugg){
+        return  (<Grid container
+                direction="row"
+                justify="space-between"
+                alignItems="baseline">
+                <TextField
+                    autoComplete="off"
+                    margin="normal"
+                    label="Add tag"
+                    id="add-tag"
+                    value={this.state.txt}
+                    onKeyPress={this.field_catch.bind(this)}
+                    onChange={this.upd_text.bind(this)}
+                /> 
+                <Popper open={this.state.anchor != undefined && sugg.length > 0} 
+                        anchorEl={this.state.anchor}
+                        placement="bottom-start">
+                    <Paper>
+                        <List dense>
+                            {sugg}
+                        </List>
+                    </Paper>
+                </Popper>
+
+                <Button variant="outlined" size="small"
+                    onClick={this.add_tag.bind(this)}>Add</Button>
+        </Grid>);
+    }
+
+    render_sugg_dialog(sugg){
+        return  (<Grid container
+            direction="row"
+            justify="space-between"
+            alignItems="baseline">
+            <Grid container
+                direction="row"
+                justify="space-between"
+                alignItems="baseline">
+                <TextField
+                    autoComplete="off"
+                    margin="normal"
+                    label="Add tag"
+                    id="add-tag"
+                    value={this.state.txt}
+                    onKeyPress={this.field_catch.bind(this)}
+                    onChange={this.upd_text.bind(this)}
+                /> 
+
+                <Button variant="outlined" size="small"
+                    onClick={this.add_tag.bind(this)}>
+                        Add
+                </Button>
+            </Grid>
+            <List dense>
+                {sugg}
+            </List>
+        </Grid>);
     }
 
     getChips(){
