@@ -1,0 +1,5 @@
+*.swp
+.vscode.
+.idea/
+config/config.json
+server_go
