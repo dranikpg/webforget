@@ -20,8 +20,8 @@ def auth_login(email, pw):
 
 #notes
 
-def notes_all(page, ps=10):
-	return s.get(url+"/ent/get?page="+str(page)+"&ps="+str(ps))
+def notes_all(fm, ps=10):
+	return s.get(url+"/ent/get?from="+str(fm)+"&ps="+str(ps))
 
 def notes_array(arr):
 	return s.get(url+"/ent/get_arr?arr="+(",".join(str(e) for e in arr))+"")
@@ -57,13 +57,13 @@ def tags_list():
 
 #search
 
-def search(title=None,tags=None,page=1,ps=10):
+def search(title=None,tags=None,fm=100000,ps=10):
 	data = {}
 	if(title != None):
 		data["title"] = title
 	if(tags != None):
 		data["tags"] = tags
-	return s.post(url+"/search?page="+str(page)+"&ps="+str(ps),
+	return s.post(url+"/search?from="+str(fm)+"&ps="+str(ps),
 		json=data)
 #simple
 

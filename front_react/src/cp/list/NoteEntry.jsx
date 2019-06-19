@@ -96,6 +96,8 @@ class NoteEntry extends React.Component{
         else return e.title + "  (" + this.getwsite(e.link) + ")";
     }
     getDate(date){
+        let d = moment(date,"YYYY-MM-DD");
+        if(d.isSame(moment(),'date'))return "today";
         return moment(date, "YYYY-MM-DD").fromNow();
     }
 }

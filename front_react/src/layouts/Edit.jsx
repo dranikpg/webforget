@@ -4,6 +4,7 @@ import { copy_note, fresh_note } from '../util';
 import { Container, TextField, Box, Grid, Button, Paper } from '@material-ui/core';
 
 import TagEdit from '../cp/edit/TagEdit';
+import { dp_note_delete, dp_note_create, dp_note_update } from '../actions/func';
 
 const btnpStyle = {
     marginTop: 30
@@ -93,7 +94,7 @@ class Edit extends React.Component{
                         justify="space-between">
                                 <Button onClick={this.a_cancel.bind(this)}>CANCEL</Button>
                                 {this.orig!=undefined && <Button onClick={this.a_delete.bind(this)}>DELETE</Button>}
-                                <Button onClick={this.a_apply.bind(this)} color="primary">APPLY</Button>
+                                <Button onClick={this.a_apply.bind(this)} color="secondary">APPLY</Button>
                         </Grid>
                     </Paper>
                 </Container>
@@ -111,16 +112,16 @@ class Edit extends React.Component{
     }
 
     a_delete(){
-        NoteStore.note_delete_instant(this.orig.id);
+        dp_note_delete(this.orig.id);
         this.a_cancel();
     }
 
     a_apply(){
         if(this.orig == undefined){
-            NoteStore.note_create_instant(this.state.obj);
+            dp_note_create(this.state.obj);
         }else{
             copy_note(this.state.obj, this.orig);
-            NoteStore.note_update_instant(this.orig);
+            dp_note_update(this.orig);
         }
         this.a_cancel();
     }

@@ -45,7 +45,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
     fn from_request(request: &'a Request<'r>) -> request::Outcome<User, ()> {
         let conn = request.guard::<Conn>()?;
         let rid = request.cookies()
-            .get/*_private*/("user_id")
+            .get_private("user_id")
             .and_then(|cookie| cookie.value().parse().ok());
         if rid.is_none(){
             return Outcome::Forward(())
@@ -66,7 +66,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for UserID {
     fn from_request(request: &'a Request<'r>) -> request::Outcome<UserID, ()> {
         let conn = request.guard::<Conn>()?;
         let rid = request.cookies()
-            .get/*_private*/("user_id")
+            .get_private("user_id")
             .and_then(|cookie| cookie.value().parse().ok());
         if rid.is_none(){
             return Outcome::Forward(())
@@ -82,11 +82,11 @@ impl<'a, 'r> FromRequest<'a, 'r> for UserID {
 fn start_session(ck: &mut Cookies, userid: i32) {
     ck.add(Cookie::build("user_id", userid.to_string())
             .path("/")
-        //  .secure(true)  
+       	    .secure(true)  
             .finish());
 }
 fn end_session(ck: &mut Cookies, _userid: i32){
-    ck.remove/*_private*/(Cookie::named("user_id"));
+    ck.remove_private(Cookie::named("user_id"));
 }
 // route utils
 pub type UserInfoT = Json<UserDto>;

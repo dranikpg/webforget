@@ -4,7 +4,7 @@ export interface FAction {
 }
 
 export interface Search{
-    tags: Set<String>|undefined,
+    tags: Array<String>|undefined,
     link: string|undefined,
     title: string|undefined,
     max_date: string|undefined,

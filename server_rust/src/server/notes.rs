@@ -22,12 +22,12 @@ pub struct NoteDto{
 }
 impl NoteDto{
     pub fn from_notewt(note: NoteWT) -> Self{
-        let tags: Vec<String> = note.tagarr.split_ascii_whitespace().map(|x| String::from(x)).collect();
+        let tags: Vec<String> = note.tagarr.unwrap_or(String::new()).split_ascii_whitespace().map(|x| String::from(x)).collect();
         NoteDto{
             id: note.id,
-            title:note.title,
-            descr: note.descr,
-            link: note.link,
+            title:note.title.unwrap_or(String::new()),
+            descr: note.descr.unwrap_or(String::new()),
+            link: note.link.unwrap_or(String::new()),
             date: note.cdate.format(FORMAT).to_string(),
             tags
         }
@@ -89,10 +89,10 @@ impl<'a> NoteNewDto<'a>{
 //struct for updating data
 type NoteUpdateDto<'a> = UpdateNote<'a>;
 //routes
-#[get("/ent/get?<page>&<ps>")]
-pub fn r_get_all(conn: Conn, user: UserID, page:i64, ps: i64) 
+#[get("/ent/get?<from>&<ps>")]
+pub fn r_get_all(conn: Conn, user: UserID, from:i64, ps: i64) 
                         -> Option<Json<Vec<NoteDto>>>{
-    let notes_o = notes::get_user_pg(&conn, user.id, page, ps);
+    let notes_o = notes::get_user_pg(&conn, user.id, from, ps);
     if notes_o.is_none(){
         return None;
     }
@@ -111,9 +111,13 @@ pub fn r_get(conn: Conn, id: i32, user: UserID) -> Option<Json<NoteDto>>{
 }
 #[post("/ent/create",format = "application/json", data = "<note>")]
 pub fn r_create(conn: Conn, user: UserID, note: Json<NoteNewDto>) -> Option<String>{
-    info!("{:?}",note);
     let res = match notes::create(&conn, note.to_new(user.id)){
-        Some(id) => return Some(id.id.to_string()),
+        Some(id) => {
+            info!("Note id is: {}", id.id);
+            tags::create_missing(&conn, user.id, &note.tags);
+            tags::add_missing(&conn, user.id, id.id, &note.tags);
+            return Some(id.id.to_string());
+        }
         None => return None
     };
 }

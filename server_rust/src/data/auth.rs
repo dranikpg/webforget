@@ -7,9 +7,11 @@ use super::schema::users;
 
 use bcrypt::{DEFAULT_COST, hash, verify};
 
+const COST: u32 = 7;
+
 type E = diesel::result::Error;
 pub fn create(conn: &RConn, nick: &str, email: &str, rpw: &str) -> Result<User, ()>{
-    let pw = hash(&rpw, DEFAULT_COST).unwrap();
+    let pw = hash(&rpw, COST).unwrap();
     let res = diesel::insert_into(users::table)
         .values(&NewUser{
             nick,
@@ -26,7 +28,7 @@ pub fn create(conn: &RConn, nick: &str, email: &str, rpw: &str) -> Result<User, 
     }
 }
 pub fn get_by_email(conn: &RConn, email: &str) -> Option<User>{
-    users::table.filter(users::email.like(email)).get_result::<User>(conn).ok()
+    users::table.filter(users::email.eq(email)).get_result::<User>(conn).ok()
 }
 pub fn get(conn: &RConn, id: i32) -> Option<User>{
     users::table.find(id).get_result::<User>(conn).ok()
