@@ -113,12 +113,9 @@ class Auth extends React.Component{
 
     render_3row(){
         return (
-            <Grid
-                container
-                direction="row"
-                justify="space-between"
-                alignItems="baseline">
+            <React.Fragment>
                 <TextField
+                    fullWidth
                     disabled={this.state.rq}
 
                     variant="outlined"
@@ -131,13 +128,13 @@ class Auth extends React.Component{
                     id="nick"
                     margin="normal"
                 /> 
-                <Button 
+                <Button style={{marginTop:20}}
                     disabled={!this.state.valid || this.state.rq || this.state.err}
                     onClick={this.send.bind(this)} 
                     variant="outlined" color="secondary" size="large">
                     {this.g_btn_text()}
                 </Button>
-            </Grid>);
+            </React.Fragment>);
     }
 
     g_btn_text(){

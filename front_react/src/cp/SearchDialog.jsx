@@ -7,12 +7,20 @@ import TagEdit from './edit/TagEdit';
 class SearchDialog extends React.Component{
     constructor(props){
         super(props);
-        if(this.props.search) this.state = {
+        /*if(this.props.search) this.state = {
             title:this.props.search.title,
             link: this.props.search.link,
             tags: this.get_tags()
-        };
-        else this.state = this.clear_state();
+        };*/
+        this.state = this.clear_state();
+    }
+    componentWillReceiveProps(props){
+        if(this.props.search) this.setState({
+            title:this.props.search.title,
+            link: this.props.search.link,
+            tags: this.get_tags()
+        });
+        else this.setState(this.clear_state());
     }
     clear_state(){
         return {
@@ -78,13 +86,13 @@ class SearchDialog extends React.Component{
                 <TagEdit dialog={true} val={this.state.tags}/>
             </DialogContent>
             <DialogActions>
-                <Button size="large" onClick={this.close.bind(this)} color="primary">
+                <Button size="large" onClick={this.close.bind(this)} color="secondary">
                   CLOSE
                 </Button>
-                <Button size="large" onClick={this.clear.bind(this)} color="primary">
+                <Button size="large" onClick={this.clear.bind(this)} color="secondary">
                   CLEAR
                 </Button>
-                <Button size="large" onClick={this.apply.bind(this)} color="primary" autoFocus>
+                <Button size="large" onClick={this.apply.bind(this)} color="secondary" autoFocus>
                   APPLY
                 </Button>
             </DialogActions>

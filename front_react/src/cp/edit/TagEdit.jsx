@@ -60,7 +60,7 @@ class TagEdit extends React.Component{
     }
 
     upd_text(ev){
-        let ntxt = ev.target.value;
+        let ntxt = ev.target.value.toLowerCase();
         if(ntxt == ""){
             dp_tags_search("");
         }else{
