@@ -24,6 +24,9 @@ func Start() {
 	router.Post("/auth/create", controller.Register)
 	router.Post("/auth/login", controller.Login)
 	router.Get("/auth/auto", controller.CheckLogin)
+	router.Get("/auth/logout", controller.Logout)
+
+	router.Post("/ent/create", controller.CreateNote)
 
 	fasthttp.ListenAndServe(":8080", router.HandleRequest)
 }

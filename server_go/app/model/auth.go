@@ -110,22 +110,16 @@ func (u User) Auth(ctx *routing.Context) error {
 		return err
 	}
 	cookie := fasthttp.Cookie{}
-	cookie.SetDomain("*")
+	cookie.SetDomain("localhost")
 	cookie.SetPath("/")
 	cookie.SetExpire(time.Now().Add(time.Hour * 24 * 365))
 	cookie.SetHTTPOnly(true)
+	cookie.SetSecure(true)
 	cookie.SetKey("webforget-uid")
 	cookie.SetValue(strconv.FormatUint(u.ID, 10))
-	cookie.SetSecure(true)
 	ctx.Response.Header.SetCookie(&cookie)
-	cookie = fasthttp.Cookie{}
-	cookie.SetDomain("*")
-	cookie.SetPath("/")
-	cookie.SetExpire(time.Now().Add(time.Hour * 24 * 365))
-	cookie.SetHTTPOnly(true)
 	cookie.SetKey("webforget-token")
 	cookie.SetValue(token)
-	cookie.SetSecure(true)
 	ctx.Response.Header.SetCookie(&cookie)
 	return nil
 }
@@ -150,7 +144,7 @@ func IsRequestHeaderAuthorized(h fasthttp.RequestHeader) (bool, error) {
 	token := string(h.Cookie("webforget-token"))
 	id, err := strconv.ParseUint(uid, 10, 64)
 	if err != nil {
-		return false, err
+		return false, nil
 	}
 	return IsAuthorized(token, id)
 }

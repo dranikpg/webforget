@@ -11,16 +11,26 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+type UserInfo struct {
+	Nick  string `json:"nick"`
+	Email string `json:"email"`
+	Pw    string `json:"pw"`
+}
+
 func Register(ctx *routing.Context) error {
-	nick := ctx.PostForm("nick")
-	pw := ctx.PostForm("pw")
-	email := ctx.PostForm("email")
-	if len(nick) < 1 || len(pw) < 1 || len(email) < 1 {
+	formBody := ctx.Request.Body()
+	var userInfo UserInfo
+	err := json.Unmarshal(formBody, &userInfo)
+	if err != nil {
+		ctx.SetStatusCode(http.StatusBadRequest)
+		return nil
+	}
+	if len(userInfo.Nick) < 1 || len(userInfo.Pw) < 1 || len(userInfo.Email) < 1 {
 		ctx.WriteString("{\"err\":\"nick, email or pw not found\"}")
 		ctx.SetStatusCode(http.StatusBadRequest)
 		return nil
 	}
-	user, err := model.NewUser(nick, email, pw)
+	user, err := model.NewUser(userInfo.Nick, userInfo.Email, userInfo.Pw)
 	if err != nil {
 		if err.Error() != "email already used" {
 			log.Println(err)
@@ -41,14 +51,19 @@ func Register(ctx *routing.Context) error {
 }
 
 func Login(ctx *routing.Context) error {
-	pw := ctx.PostForm("pw")
-	email := ctx.PostForm("email")
-	if len(pw) < 1 || len(email) < 1 {
+	formBody := ctx.Request.Body()
+	var userInfo UserInfo
+	err := json.Unmarshal(formBody, &userInfo)
+	if err != nil {
+		ctx.SetStatusCode(http.StatusBadRequest)
+		return nil
+	}
+	if len(userInfo.Pw) < 1 || len(userInfo.Email) < 1 {
 		ctx.WriteString("{\"err\":\"nick, email or pw not found\"}")
 		ctx.SetStatusCode(http.StatusBadRequest)
 		return nil
 	}
-	user, err := model.Login(email, pw)
+	user, err := model.Login(userInfo.Email, userInfo.Pw)
 	if err != nil {
 		if err.Error() == "wrong password" || err.Error() == "wrong email" {
 			ctx.SetStatusCode(http.StatusBadRequest)
@@ -123,22 +138,15 @@ func Logout(ctx *routing.Context) error {
 		return nil
 	}
 	cookie := fasthttp.Cookie{}
-	cookie.SetDomain("*")
+	cookie.SetDomain("localhost")
 	cookie.SetPath("/")
 	cookie.SetExpire(time.Now())
 	cookie.SetHTTPOnly(true)
+	cookie.SetValue("")
+	cookie.SetSecure(true)
 	cookie.SetKey("webforget-uid")
-	cookie.SetValue("")
-	cookie.SetSecure(true)
 	ctx.Response.Header.SetCookie(&cookie)
-	cookie = fasthttp.Cookie{}
-	cookie.SetDomain("*")
-	cookie.SetPath("/")
-	cookie.SetExpire(time.Now())
-	cookie.SetHTTPOnly(true)
 	cookie.SetKey("webforget-token")
-	cookie.SetValue("")
-	cookie.SetSecure(true)
 	ctx.Response.Header.SetCookie(&cookie)
 	return nil
 }
