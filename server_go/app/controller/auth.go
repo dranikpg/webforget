@@ -25,7 +25,7 @@ func Register(ctx *routing.Context) error {
 		ctx.SetStatusCode(http.StatusBadRequest)
 		return nil
 	}
-	if len(userInfo.Nick) < 1 || len(userInfo.Pw) < 1 || len(userInfo.Email) < 1 {
+	if len(userInfo.Nick) < 2 || len(userInfo.Pw) < 2 || len(userInfo.Email) < 2 {
 		ctx.WriteString("{\"err\":\"nick, email or pw not found\"}")
 		ctx.SetStatusCode(http.StatusBadRequest)
 		return nil
@@ -58,7 +58,7 @@ func Login(ctx *routing.Context) error {
 		ctx.SetStatusCode(http.StatusBadRequest)
 		return nil
 	}
-	if len(userInfo.Pw) < 1 || len(userInfo.Email) < 1 {
+	if len(userInfo.Pw) < 2 || len(userInfo.Email) < 2 {
 		ctx.WriteString("{\"err\":\"nick, email or pw not found\"}")
 		ctx.SetStatusCode(http.StatusBadRequest)
 		return nil

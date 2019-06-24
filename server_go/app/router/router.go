@@ -27,6 +27,12 @@ func Start() {
 	router.Get("/auth/logout", controller.Logout)
 
 	router.Post("/ent/create", controller.CreateNote)
+	router.Get("/ent/get", controller.GetPaged)
+	router.Get("/ent/get/<id>", controller.GetNote)
+	router.Get("/ent/get_arr", controller.GetNoteArray)
+	router.Post("/ent/update/<id>", controller.UpdateNote)
+	router.Post("/ent/update_tags/<id>", controller.UpdateNoteTags)
+	router.Post("/ent/delete/<id>", controller.DeleteNote)
 
 	fasthttp.ListenAndServe(":8080", router.HandleRequest)
 }

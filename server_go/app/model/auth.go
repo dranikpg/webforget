@@ -114,7 +114,7 @@ func (u User) Auth(ctx *routing.Context) error {
 	cookie.SetPath("/")
 	cookie.SetExpire(time.Now().Add(time.Hour * 24 * 365))
 	cookie.SetHTTPOnly(true)
-	cookie.SetSecure(true)
+	cookie.SetSecure(false)
 	cookie.SetKey("webforget-uid")
 	cookie.SetValue(strconv.FormatUint(u.ID, 10))
 	ctx.Response.Header.SetCookie(&cookie)
