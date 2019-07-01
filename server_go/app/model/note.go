@@ -36,14 +36,18 @@ func (u *User) NewNote(title, description, link string, tags []string, date time
 	if err != nil {
 		return Note{}, err
 	}
-	err = IndexTagsForNote(note.ID, note.Tags)
+	err = u.IndexTagsForNote(note.ID, note.Tags)
+	if err != nil {
+		return Note{}, err
+	}
+	err = u.IndexTags(note.Tags)
 	if err != nil {
 		return Note{}, err
 	}
 	return note, nil
 }
 
-func (u *User) GetNoteByID(id uint64) (Note, error) {
+func (u User) GetNoteByID(id uint64) (Note, error) {
 	session, err := mgo.Dial(config.C.DbConnString)
 	if err != nil {
 		return Note{}, err
@@ -52,13 +56,10 @@ func (u *User) GetNoteByID(id uint64) (Note, error) {
 	col := session.DB(config.C.DbName).C(notesCollection)
 	var res Note
 	err = col.Find(bson.M{"id": id, "author_id": u.ID}).One(&res)
-	if err != nil {
-		return Note{}, err
-	}
 	return res, err
 }
 
-func (u *User) GetPaged(fromNum, pageSize int) ([]Note, error) {
+func (u User) GetPaged(fromNum, pageSize int) ([]Note, error) {
 	session, err := mgo.Dial(config.C.DbConnString)
 	if err != nil {
 		return []Note{}, err
@@ -70,7 +71,7 @@ func (u *User) GetPaged(fromNum, pageSize int) ([]Note, error) {
 	return res, nil
 }
 
-func (u *User) UpdateNote(id uint64, title, descr, link string) error {
+func (u User) UpdateNote(id uint64, title, descr, link string) error {
 	note, err := u.GetNoteByID(id)
 	if err != nil {
 		return errors.New("note not found")
@@ -93,12 +94,45 @@ func (u *User) UpdateNote(id uint64, title, descr, link string) error {
 	return col.Update(bson.M{"id": id}, note)
 }
 
-func (u *User) UpdateNoteTags(id uint64, tags []string) error {
+func (u User) UpdateNoteTags(id uint64, tags []string) error {
 	note, err := u.GetNoteByID(id)
 	if err != nil {
 		return errors.New("note not found")
 	}
+	prevTags := note.Tags
 	note.Tags = tags
+	tagEnt := make(map[string]int)
+	for _, v := range prevTags {
+		tagEnt[v]++
+	}
+	for _, v := range tags {
+		tagEnt[v] += 2
+	}
+	var oldTags, newTags = make([]string, 0), make([]string, 0)
+	for k, v := range tagEnt {
+		if v == 1 {
+			oldTags = append(oldTags, k)
+		}
+		if v == 2 {
+			newTags = append(newTags, k)
+		}
+	}
+	err = u.RemoveTags(oldTags)
+	if err != nil {
+		return err
+	}
+	err = u.IndexTags(newTags)
+	if err != nil {
+		return err
+	}
+	err = u.RemoveTagsForNote(id, oldTags)
+	if err != nil {
+		return err
+	}
+	err = u.IndexTagsForNote(id, newTags)
+	if err != nil {
+		return err
+	}
 	session, err := mgo.Dial(config.C.DbConnString)
 	if err != nil {
 		return err
@@ -106,10 +140,9 @@ func (u *User) UpdateNoteTags(id uint64, tags []string) error {
 	defer session.Close()
 	col := session.DB(config.C.DbName).C(notesCollection)
 	return col.Update(bson.M{"id": id}, note)
-	//TODO reindex tag mapping
 }
 
-func (u *User) DeleteNote(id uint64) error {
+func (u User) DeleteNote(id uint64) error {
 	session, err := mgo.Dial(config.C.DbConnString)
 	if err != nil {
 		return err

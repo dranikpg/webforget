@@ -46,7 +46,14 @@ func Register(ctx *routing.Context) error {
 		ctx.SetStatusCode(http.StatusInternalServerError)
 		log.Println(err)
 	}
+	res, err := json.Marshal(user)
+	if err != nil {
+		log.Println(err)
+		ctx.SetStatusCode(http.StatusInternalServerError)
+		return nil
+	}
 	ctx.SetStatusCode(http.StatusOK)
+	ctx.Write(res)
 	return nil
 }
 
@@ -79,7 +86,14 @@ func Login(ctx *routing.Context) error {
 		ctx.SetStatusCode(http.StatusInternalServerError)
 		log.Println(err)
 	}
+	res, err := json.Marshal(user)
+	if err != nil {
+		log.Println(err)
+		ctx.SetStatusCode(http.StatusInternalServerError)
+		return nil
+	}
 	ctx.SetStatusCode(http.StatusOK)
+	ctx.Write(res)
 	return nil
 }
 

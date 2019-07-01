@@ -34,5 +34,9 @@ func Start() {
 	router.Post("/ent/update_tags/<id>", controller.UpdateNoteTags)
 	router.Post("/ent/delete/<id>", controller.DeleteNote)
 
+	router.Get("/tg/alike", controller.TagsWithPref)
+
+	router.Post("/search", controller.Search)
+
 	fasthttp.ListenAndServe(":8080", router.HandleRequest)
 }

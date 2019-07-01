@@ -42,7 +42,10 @@ func CreateNote(ctx *routing.Context) error {
 		noteCreate.Date = date.ToString(date.CurDate())
 		return nil
 	}
-	//TODO validate all now
+	if len(noteCreate.Title) < 2 || len(noteCreate.Link) < 2 || len(noteCreate.Descr) < 2 {
+		ctx.SetStatusCode(http.StatusBadRequest)
+		return nil
+	}
 	nativeDate, err := date.FromString(noteCreate.Date)
 	if err != nil {
 		ctx.SetStatusCode(http.StatusBadRequest)
@@ -51,10 +54,11 @@ func CreateNote(ctx *routing.Context) error {
 	note, err := user.NewNote(noteCreate.Title, noteCreate.Descr, noteCreate.Link, noteCreate.Tags, nativeDate)
 	if err != nil {
 		ctx.SetStatusCode(http.StatusInternalServerError)
+		log.Println(err)
 		return nil
 	}
 	ctx.SetStatusCode(http.StatusOK)
-	ctx.WriteString(strconv.FormatUint(note.ID, 10))
+	ctx.Write(note.ID)
 	return nil
 }
 
@@ -86,7 +90,7 @@ func GetNote(ctx *routing.Context) error {
 		ctx.SetStatusCode(http.StatusInternalServerError)
 		return nil
 	}
-	ctx.WriteString(string(res))
+	ctx.Write(res)
 	return nil
 }
 
@@ -127,7 +131,7 @@ func GetPaged(ctx *routing.Context) error {
 		log.Println(err)
 		return nil
 	}
-	ctx.WriteString(string(res))
+	ctx.Write(res)
 	return nil
 }
 
@@ -166,7 +170,7 @@ func GetNoteArray(ctx *routing.Context) error {
 		log.Println(err)
 		return nil
 	}
-	ctx.WriteString(string(resBytes))
+	ctx.Write(resBytes)
 	return nil
 }
 
@@ -236,6 +240,7 @@ func UpdateNoteTags(ctx *routing.Context) error {
 		if err.Error() == "note not found" {
 			ctx.SetStatusCode(http.StatusNotFound)
 		} else {
+			log.Println(err)
 			ctx.SetStatusCode(http.StatusInternalServerError)
 		}
 		return nil
