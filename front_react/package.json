@@ -13,7 +13,7 @@
     "react-dom": "^16.8.6",
     "react-infinite-scroller": "^1.2.4",
     "react-router-dom": "^5.0.0",
-    "react-scripts": "3.0.1",
+    "react-scripts": "5.0.1",
     "stringset": "^0.2.1",
     "threads": "^0.12.1",
     "typescript": "^3.5.1"
